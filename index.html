@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorie Tracker</title>
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d24; --accent:#5fb878; --accent2:#e8a33d;
+    --text:#e8e8ea; --muted:#8b8f99; --danger:#e05c5c; --border:#2a2e38;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:var(--bg); color:var(--text); padding-bottom:40px;
+  }
+  .app{max-width:480px; margin:0 auto; padding:16px;}
+  h1{font-size:20px; font-weight:700; margin:8px 0 4px;}
+  .sub{color:var(--muted); font-size:13px; margin-bottom:18px;}
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px;
+    padding:16px; margin-bottom:14px;
+  }
+  .totals{display:flex; justify-content:space-between; gap:8px;}
+  .totals .stat{text-align:center; flex:1;}
+  .totals .stat .v{font-size:20px; font-weight:700;}
+  .totals .stat .l{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+  .stat.cal .v{color:var(--accent2);}
+  label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px; margin-top:12px;}
+  input[type=text], textarea{
+    width:100%; background:#11131a; border:1px solid var(--border); border-radius:8px;
+    color:var(--text); padding:10px 12px; font-size:14px; font-family:inherit;
+  }
+  input[type=file]{display:none;}
+  .upload-box{
+    border:2px dashed var(--border); border-radius:12px; padding:18px; text-align:center;
+    cursor:pointer; color:var(--muted); font-size:13px;
+  }
+  .upload-box:active{background:#161922;}
+  #preview{max-width:100%; border-radius:10px; margin-top:10px; display:none;}
+  button{
+    background:var(--accent); color:#0f1115; border:none; border-radius:10px;
+    padding:12px 16px; font-size:14px; font-weight:700; cursor:pointer; width:100%; margin-top:14px;
+  }
+  button:disabled{opacity:.5;}
+  button.secondary{background:#2a2e38; color:var(--text); font-weight:600;}
+  .meal-item{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    padding:10px 0; border-bottom:1px solid var(--border); gap:10px;
+  }
+  .meal-item:last-child{border-bottom:none;}
+  .meal-item .name{font-size:14px; font-weight:600;}
+  .meal-item .macros{font-size:11px; color:var(--muted); margin-top:2px;}
+  .meal-item .cal{font-size:14px; font-weight:700; color:var(--accent2); white-space:nowrap;}
+  .del{background:none; border:none; color:var(--danger); font-size:12px; width:auto; margin:0; padding:0 0 0 8px;}
+  .common-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .chip{
+    background:#11131a; border:1px solid var(--border); border-radius:20px;
+    padding:6px 12px; font-size:12px; cursor:pointer; color:var(--text);
+  }
+  .chip:active{background:#22262f;}
+  .empty{color:var(--muted); font-size:13px; text-align:center; padding:14px 0;}
+  .err{color:var(--danger); font-size:13px; margin-top:8px;}
+  .loading{display:flex; align-items:center; gap:8px; color:var(--muted); font-size:13px; margin-top:10px;}
+  .spinner{
+    width:14px; height:14px; border:2px solid var(--border); border-top-color:var(--accent2);
+    border-radius:50%; animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .tabs{display:flex; gap:8px; margin-bottom:14px;}
+  .tab{
+    flex:1; text-align:center; padding:8px; border-radius:8px; font-size:13px; cursor:pointer;
+    background:var(--card); border:1px solid var(--border); color:var(--muted);
+  }
+  .tab.active{background:var(--accent); color:#0f1115; font-weight:700; border-color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🍽️ Calorie Tracker</h1>
+  <div class="sub">Photo + quantity → AI calorie estimate</div>
+
+  <div class="card">
+    <div class="totals">
+      <div class="stat cal"><div class="v" id="totCal">0</div><div class="l">kcal today</div></div>
+      <div class="stat"><div class="v" id="totP">0g</div><div class="l">protein</div></div>
+      <div class="stat"><div class="v" id="totC">0g</div><div class="l">carbs</div></div>
+      <div class="stat"><div class="v" id="totF">0g</div><div class="l">fat</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="upload-box" id="uploadBox">📷 Tap to add meal photo</div>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="secondary" id="cameraBtn" style="margin-top:0;">📷 Camera</button>
+      <button class="secondary" id="galleryBtn" style="margin-top:0;">🖼️ Gallery</button>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+    <input type="file" id="galleryInput" accept="image/*" style="display:none;">
+    <img id="preview">
+
+    <label>Quantity / portion (e.g. "1 bowl", "150g", "2 rotis + 1 katori dal")</label>
+    <input type="text" id="qtyInput" placeholder="Describe quantity...">
+
+    <button id="analyzeBtn">Analyze Calories</button>
+    <div id="loadingMsg" class="loading" style="display:none;"><div class="spinner"></div>Analyzing meal...</div>
+    <div id="errMsg" class="err" style="display:none;"></div>
+  </div>
+
+  <div class="card">
+    <label style="margin-top:0;">Quick add — common meals</label>
+    <div class="common-list" id="commonList"></div>
+  </div>
+
+  <div class="card">
+    <label style="margin-top:0;">Today's log</label>
+    <div id="mealLog"><div class="empty">No meals logged yet today</div></div>
+  </div>
+
+  <button class="secondary" id="resetDayBtn">Start New Day</button>
+</div>
+
+<script>
+let imageBase64 = null;
+let imageMediaType = null;
+
+const cameraInput = document.getElementById('cameraInput');
+const galleryInput = document.getElementById('galleryInput');
+const cameraBtn = document.getElementById('cameraBtn');
+const galleryBtn = document.getElementById('galleryBtn');
+const uploadBox = document.getElementById('uploadBox');
+const preview = document.getElementById('preview');
+const qtyInput = document.getElementById('qtyInput');
+const analyzeBtn = document.getElementById('analyzeBtn');
+const loadingMsg = document.getElementById('loadingMsg');
+const errMsg = document.getElementById('errMsg');
+
+cameraBtn.addEventListener('click', () => cameraInput.click());
+galleryBtn.addEventListener('click', () => galleryInput.click());
+uploadBox.addEventListener('click', () => galleryInput.click());
+
+function handleFile(file){
+  if (!file) return;
+  imageMediaType = file.type;
+  const reader = new FileReader();
+  reader.onload = () => {
+    imageBase64 = reader.result.split(',')[1];
+    preview.src = reader.result;
+    preview.style.display = 'block';
+    uploadBox.textContent = '📷 Tap to change photo';
+  };
+  reader.readAsDataURL(file);
+}
+
+cameraInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+galleryInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+function todayKey(){
+  const d = new Date();
+  return 'meals:' + d.toISOString().slice(0,10);
+}
+
+async function loadDay(){
+  try{
+    const res = await window.storage.get(todayKey());
+    return res ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+
+async function saveDay(meals){
+  try{ await window.storage.set(todayKey(), JSON.stringify(meals)); }
+  catch(e){ console.error('save failed', e); }
+}
+
+async function loadCommonMeals(){
+  try{
+    const res = await window.storage.get('commonMeals');
+    return res ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+
+async function saveCommonMeals(list){
+  try{ await window.storage.set('commonMeals', JSON.stringify(list)); }
+  catch(e){ console.error('save failed', e); }
+}
+
+async function addToCommonMeals(meal){
+  let list = await loadCommonMeals();
+  list = list.filter(m => !(m.name === meal.name && m.quantity === meal.quantity));
+  list.unshift(meal);
+  list = list.slice(0, 8);
+  await saveCommonMeals(list);
+  renderCommonMeals();
+}
+
+async function renderCommonMeals(){
+  const list = await loadCommonMeals();
+  const el = document.getElementById('commonList');
+  if (list.length === 0){
+    el.innerHTML = '<span class="empty" style="padding:4px 0;">Meals you log will appear here for quick re-add</span>';
+    return;
+  }
+  el.innerHTML = '';
+  list.forEach((meal, idx) => {
+    const chip = document.createElement('div');
+    chip.className = 'chip';
+    chip.textContent = `${meal.name} (${meal.quantity}) — ${meal.calories} kcal`;
+    chip.onclick = () => quickAddMeal(meal);
+    el.appendChild(chip);
+  });
+}
+
+async function quickAddMeal(meal){
+  let meals = await loadDay();
+  meals.push({...meal, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
+  await saveDay(meals);
+  renderLog();
+}
+
+async function renderLog(){
+  const meals = await loadDay();
+  const logEl = document.getElementById('mealLog');
+  if (meals.length === 0){
+    logEl.innerHTML = '<div class="empty">No meals logged yet today</div>';
+  } else {
+    logEl.innerHTML = '';
+    meals.forEach((m, idx) => {
+      const item = document.createElement('div');
+      item.className = 'meal-item';
+      item.innerHTML = `
+        <div>
+          <div class="name">${m.name} <span style="color:var(--muted); font-weight:400;">· ${m.quantity}</span></div>
+          <div class="macros">${m.time || ''} · P ${m.protein}g · C ${m.carbs}g · F ${m.fat}g</div>
+        </div>
+        <div style="display:flex; align-items:center;">
+          <div class="cal">${m.calories} kcal</div>
+          <button class="del" onclick="deleteMeal(${idx})">✕</button>
+        </div>`;
+      logEl.appendChild(item);
+    });
+  }
+  const totals = meals.reduce((acc, m) => ({
+    cal: acc.cal + Number(m.calories||0),
+    p: acc.p + Number(m.protein||0),
+    c: acc.c + Number(m.carbs||0),
+    f: acc.f + Number(m.fat||0),
+  }), {cal:0,p:0,c:0,f:0});
+  document.getElementById('totCal').textContent = Math.round(totals.cal);
+  document.getElementById('totP').textContent = Math.round(totals.p) + 'g';
+  document.getElementById('totC').textContent = Math.round(totals.c) + 'g';
+  document.getElementById('totF').textContent = Math.round(totals.f) + 'g';
+}
+
+window.deleteMeal = async function(idx){
+  let meals = await loadDay();
+  meals.splice(idx, 1);
+  await saveDay(meals);
+  renderLog();
+}
+
+document.getElementById('resetDayBtn').addEventListener('click', async () => {
+  if (confirm('Clear today\'s log? (common meals are kept)')){
+    await saveDay([]);
+    renderLog();
+  }
+});
+
+analyzeBtn.addEventListener('click', async () => {
+  errMsg.style.display = 'none';
+  if (!imageBase64){
+    errMsg.textContent = 'Please add a meal photo first.';
+    errMsg.style.display = 'block';
+    return;
+  }
+  if (!qtyInput.value.trim()){
+    errMsg.textContent = 'Please describe the quantity/portion.';
+    errMsg.style.display = 'block';
+    return;
+  }
+
+  analyzeBtn.disabled = true;
+  loadingMsg.style.display = 'flex';
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: imageMediaType, data: imageBase64 } },
+            { type: "text", text: `Identify the food item(s) in this photo. The user reports the quantity/portion as: "${qtyInput.value.trim()}". Based on the visual content and stated quantity, estimate total calories, protein, carbs and fat for this meal.
+
+Respond ONLY with a JSON object, no markdown fences, no preamble, in this exact format:
+{"name": "short meal name", "calories": number, "protein": number, "carbs": number, "fat": number, "notes": "1 short sentence on assumptions made"}` }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const textBlock = data.content.find(b => b.type === 'text');
+    if (!textBlock) throw new Error('No response from model');
+    const clean = textBlock.text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    const meal = {
+      name: parsed.name,
+      quantity: qtyInput.value.trim(),
+      calories: Math.round(parsed.calories),
+      protein: Math.round(parsed.protein),
+      carbs: Math.round(parsed.carbs),
+      fat: Math.round(parsed.fat),
+      time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+    };
+
+    let meals = await loadDay();
+    meals.push(meal);
+    await saveDay(meals);
+    await addToCommonMeals({name: meal.name, quantity: meal.quantity, calories: meal.calories, protein: meal.protein, carbs: meal.carbs, fat: meal.fat});
+    renderLog();
+
+    imageBase64 = null;
+    preview.style.display = 'none';
+    uploadBox.textContent = '📷 Tap to add meal photo';
+    qtyInput.value = '';
+
+    if (parsed.notes){
+      errMsg.style.color = 'var(--accent)';
+      errMsg.textContent = '✓ ' + parsed.notes;
+      errMsg.style.display = 'block';
+    }
+  } catch (e) {
+    console.error(e);
+    errMsg.style.color = 'var(--danger)';
+    errMsg.textContent = 'Could not analyze meal. Please try again.';
+    errMsg.style.display = 'block';
+  } finally {
+    analyzeBtn.disabled = false;
+    loadingMsg.style.display = 'none';
+  }
+});
+
+renderLog();
+renderCommonMeals();
+</script>
+</body>
+</html>
