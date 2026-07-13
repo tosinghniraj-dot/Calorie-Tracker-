@@ -98,7 +98,7 @@
 <body>
 <div class="app">
   <h1>🍽️ Calorie Tracker</h1>
-  <div class="sub">Search 130+ foods or add manually — no account needed</div>
+  <div class="sub">Search 200+ foods or add manually — no account needed</div>
 
   <div class="card">
     <div class="totals">
@@ -118,7 +118,7 @@
   <div id="panel-search" class="card">
     <input type="search" id="searchInput" placeholder="e.g. roti, dal, chicken, apple..." autocomplete="off">
     <div class="results" id="searchResults">
-      <div class="empty-search">Type to search 130+ foods</div>
+      <div class="empty-search">Type to search 200+ foods</div>
     </div>
     <div id="selPanel" style="display:none">
       <div class="divider"></div>
@@ -303,6 +303,86 @@ const FOODS = [
   {name:"Boiled Potato",cat:"Western",unit:"1 medium (150g)",cal:130,p:3,c:30,f:0.2},
   {name:"Cornflakes with milk",cat:"Western",unit:"1 bowl",cal:200,p:5,c:38,f:3},
   {name:"Muesli with milk",cat:"Western",unit:"1 bowl",cal:280,p:8,c:48,f:6},
+  // Sabzi — Dry & Semi-dry Vegetable Dishes
+  {name:"Ghee Roti (Roti with Ghee)",cat:"Sabzi",unit:"1 roti",cal:125,p:3,c:15,f:6.5},
+  {name:"Bhindi Bhujia (Okra Stir-fry)",cat:"Sabzi",unit:"1 katori (150g)",cal:120,p:3,c:12,f:6},
+  {name:"Parwal Bhujia (Pointed Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:110,p:3,c:12,f:5},
+  {name:"Aloo Sabzi (Potato Curry)",cat:"Sabzi",unit:"1 katori (150ml)",cal:150,p:3,c:25,f:5},
+  {name:"Dum Aloo (Spiced Baby Potatoes)",cat:"Sabzi",unit:"1 katori (150ml)",cal:200,p:4,c:28,f:8},
+  {name:"Aloo Baingan (Potato & Brinjal)",cat:"Sabzi",unit:"1 katori (150ml)",cal:140,p:3,c:18,f:6},
+  {name:"Lauki Sabzi (Bottle Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:2,c:10,f:3},
+  {name:"Tinda Sabzi (Apple Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:90,p:2,c:12,f:3},
+  {name:"Turai / Gilki Sabzi (Ridge Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:2,c:9,f:2},
+  {name:"Karela Sabzi (Bitter Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:100,p:2,c:12,f:4},
+  {name:"Arbi Sabzi (Taro Root / Colocasia)",cat:"Sabzi",unit:"1 katori (150g)",cal:160,p:3,c:28,f:5},
+  {name:"Kathal Sabzi (Raw Jackfruit)",cat:"Sabzi",unit:"1 katori (150ml)",cal:155,p:3,c:22,f:5},
+  {name:"Patta Gobhi Sabzi (Cabbage)",cat:"Sabzi",unit:"1 katori (150g)",cal:90,p:3,c:10,f:4},
+  {name:"Sarson ka Saag (Mustard Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:130,p:5,c:15,f:5},
+  {name:"Palak Saag (Spinach Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:4,c:8,f:3},
+  {name:"Methi Sabzi (Fenugreek Leaves)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:4,c:7,f:2},
+  {name:"Shimla Mirch Sabzi (Capsicum)",cat:"Sabzi",unit:"1 katori (150g)",cal:95,p:2,c:11,f:4},
+  {name:"Sev Tamatar Sabzi",cat:"Sabzi",unit:"1 katori (150ml)",cal:160,p:4,c:18,f:7},
+  {name:"Chaulai Saag (Amaranth Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:3,c:8,f:2},
+  {name:"Gawar Phali Sabzi (Cluster Beans)",cat:"Sabzi",unit:"1 katori (150g)",cal:85,p:3,c:11,f:3},
+  {name:"Sem Phali Sabzi (Flat Beans)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:3,c:10,f:3},
+  {name:"Chichinda Sabzi (Snake Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:65,p:2,c:8,f:2},
+  {name:"Torai / Nenua Sabzi (Sponge Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:68,p:2,c:9,f:2},
+  {name:"Matar Mushroom (Peas & Mushroom)",cat:"Sabzi",unit:"1 katori (150ml)",cal:130,p:6,c:14,f:5},
+  {name:"Aloo Palak (Potato & Spinach)",cat:"Sabzi",unit:"1 katori (150ml)",cal:145,p:4,c:20,f:5},
+  // Dahi / Curd Variations
+  {name:"Dahi with Sugar (Meethi Dahi)",cat:"Dairy",unit:"1 katori (150g)",cal:140,p:5,c:22,f:3.5},
+  {name:"Namkeen Dahi (Dahi with Salt)",cat:"Dairy",unit:"1 katori (150g)",cal:85,p:5,c:9,f:3.5},
+  {name:"Dahi with Gur (Jaggery Curd)",cat:"Dairy",unit:"1 katori (150g)",cal:115,p:5,c:17,f:3.5},
+  {name:"Plain Raita",cat:"Dairy",unit:"1 katori (150g)",cal:65,p:3,c:6,f:3},
+  {name:"Boondi Raita",cat:"Dairy",unit:"1 katori (150g)",cal:120,p:4,c:12,f:5},
+  {name:"Kheera Raita (Cucumber Raita)",cat:"Dairy",unit:"1 katori (150g)",cal:70,p:3,c:7,f:3},
+  {name:"Aloo Raita (Potato Raita)",cat:"Dairy",unit:"1 katori (150g)",cal:110,p:4,c:15,f:3},
+  {name:"Mishti Doi (Bengali Sweet Curd)",cat:"Dairy",unit:"1 small pot (120g)",cal:160,p:5,c:25,f:4},
+  // More Indian Breads
+  {name:"Makki ki Roti (Corn Bread)",cat:"Indian",unit:"1 roti",cal:90,p:2,c:18,f:1.5},
+  {name:"Bajra Roti (Pearl Millet Bread)",cat:"Indian",unit:"1 roti",cal:85,p:3,c:16,f:1.5},
+  {name:"Jowar Roti (Sorghum Bread)",cat:"Indian",unit:"1 roti",cal:80,p:2.5,c:17,f:1},
+  {name:"Missi Roti (Gram Flour Bread)",cat:"Indian",unit:"1 roti",cal:120,p:5,c:18,f:3},
+  {name:"Thepla (Methi Flatbread)",cat:"Indian",unit:"1 thepla",cal:110,p:3,c:16,f:4},
+  {name:"Sattu Paratha (Roasted Gram Paratha)",cat:"Indian",unit:"1 paratha",cal:280,p:9,c:40,f:9},
+  // More Dal Varieties
+  {name:"Sabut Masoor Dal (Whole Red Lentil)",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:20,f:3},
+  {name:"Dal Fry (Yellow Dal)",cat:"Indian",unit:"1 katori (150ml)",cal:155,p:9,c:18,f:5},
+  {name:"Dhuli Moong Dal (Yellow Split Moong)",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:8,c:16,f:1.5},
+  {name:"Panchmel Dal (Five Lentil Mix)",cat:"Indian",unit:"1 katori (150ml)",cal:160,p:10,c:20,f:4},
+  {name:"Chana Dal with Lauki",cat:"Indian",unit:"1 katori (150ml)",cal:140,p:8,c:18,f:3},
+  // More Indian Dishes
+  {name:"Sabudana Khichdi (Tapioca Khichdi)",cat:"Indian",unit:"1 katori (150g)",cal:300,p:5,c:55,f:7},
+  {name:"Dalia (Broken Wheat Porridge)",cat:"Indian",unit:"1 katori (150g)",cal:150,p:5,c:28,f:2},
+  {name:"Chole Bhature",cat:"Indian",unit:"1 bhatura + chole",cal:450,p:12,c:65,f:14},
+  {name:"Dal Baati Churma",cat:"Indian",unit:"2 baati + dal",cal:480,p:12,c:65,f:16},
+  {name:"Litti Chokha",cat:"Indian",unit:"2 litti + chokha",cal:400,p:10,c:58,f:14},
+  {name:"Egg Curry",cat:"Indian",unit:"2 eggs in gravy",cal:220,p:14,c:8,f:14},
+  {name:"Keema (Minced Mutton Curry)",cat:"Indian",unit:"1 katori (150ml)",cal:260,p:22,c:6,f:16},
+  {name:"Sabudana Vada",cat:"Indian",unit:"2 pieces",cal:180,p:4,c:28,f:6},
+  {name:"Bread Upma",cat:"Indian",unit:"1 bowl",cal:220,p:5,c:35,f:7},
+  {name:"Dal Chawal (Dal + Rice)",cat:"Indian",unit:"1 plate",cal:345,p:13,c:60,f:4.5},
+  {name:"Rajma Chawal",cat:"Indian",unit:"1 plate",cal:365,p:14,c:64,f:3.5},
+  {name:"Kadhi Chawal (Kadhi + Rice)",cat:"Indian",unit:"1 plate",cal:350,p:10,c:58,f:9},
+  {name:"Puri Bhaji",cat:"Indian",unit:"2 puri + sabzi",cal:320,p:6,c:44,f:13},
+  {name:"Aloo Puri",cat:"Indian",unit:"2 puri + aloo",cal:340,p:6,c:48,f:13},
+  // Condiments & Sides
+  {name:"Papad (Roasted)",cat:"Snacks",unit:"1 papad",cal:35,p:2,c:5,f:1},
+  {name:"Papad (Fried)",cat:"Snacks",unit:"1 papad",cal:60,p:2,c:5,f:3.5},
+  {name:"Green Chutney (Mint/Coriander)",cat:"Snacks",unit:"2 tbsp",cal:15,p:0.5,c:2,f:0.3},
+  {name:"Imli Chutney (Tamarind Chutney)",cat:"Snacks",unit:"2 tbsp",cal:40,p:0.2,c:10,f:0.1},
+  {name:"Achar / Mixed Pickle",cat:"Snacks",unit:"1 tsp",cal:20,p:0,c:1,f:2},
+  {name:"Namkeen (Mixed Snack Mix)",cat:"Snacks",unit:"1 handful (30g)",cal:140,p:4,c:16,f:7},
+  {name:"Chivda (Flattened Rice Snack)",cat:"Snacks",unit:"1 handful (30g)",cal:120,p:3,c:18,f:4},
+  {name:"Shakarpara",cat:"Snacks",unit:"5 pieces",cal:120,p:2,c:18,f:5},
+  // Indian Drinks
+  {name:"Rooh Afza Sharbat",cat:"Drinks",unit:"1 glass (200ml)",cal:90,p:0,c:22,f:0},
+  {name:"Aam Panna (Raw Mango Drink)",cat:"Drinks",unit:"1 glass (200ml)",cal:60,p:0,c:15,f:0},
+  {name:"Jaljeera",cat:"Drinks",unit:"1 glass (200ml)",cal:30,p:0,c:7,f:0},
+  {name:"Sattu Drink (Chilled)",cat:"Drinks",unit:"1 glass (250ml)",cal:120,p:6,c:22,f:1},
+  {name:"Thandai",cat:"Drinks",unit:"1 glass (250ml)",cal:180,p:5,c:28,f:6},
+  {name:"Kanji (Fermented Mustard Drink)",cat:"Drinks",unit:"1 glass (200ml)",cal:40,p:1,c:8,f:0.5},
+  {name:"Nimbu Pani (Lemonade)",cat:"Drinks",unit:"1 glass (200ml)",cal:35,p:0,c:9,f:0},
 ];
 
 // Storage: use window.storage if available (app platform), else localStorage
@@ -327,7 +407,7 @@ const searchResults = document.getElementById('searchResults');
 searchInput.addEventListener('input', () => {
   const q = searchInput.value.trim().toLowerCase();
   if (!q) {
-    searchResults.innerHTML = '<div class="empty-search">Type to search 130+ foods</div>';
+    searchResults.innerHTML = '<div class="empty-search">Type to search 200+ foods</div>';
     return;
   }
   const matches = FOODS.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
@@ -393,7 +473,7 @@ document.getElementById('addBtn').addEventListener('click', async () => {
   await logMeal(meal);
   // Reset search
   searchInput.value = '';
-  searchResults.innerHTML = '<div class="empty-search">Type to search 130+ foods</div>';
+  searchResults.innerHTML = '<div class="empty-search">Type to search 200+ foods</div>';
   document.getElementById('selPanel').style.display = 'none';
   selectedFood = null;
 });
