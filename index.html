@@ -24,6 +24,11 @@
   .date-center{flex:1;text-align:center;}
   .date-str{font-size:14px;font-weight:600;}
   .today-badge{font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.06em;margin-top:1px;}
+  .date-center{cursor:pointer;user-select:none;}
+  .date-center:hover .date-str{color:var(--accent);}
+  #datePicker{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+  .save-dot{display:inline-block;width:7px;height:7px;background:var(--accent);border-radius:50%;margin-left:6px;opacity:0;transition:opacity .3s;vertical-align:middle;}
+  .save-dot.show{opacity:1;}
 
   /* Totals */
   .totals{display:flex;justify-content:space-between;gap:8px;}
@@ -127,11 +132,12 @@
   <div class="sub">Day-wise meal log · Breakfast · Lunch · Dinner · Snacks</div>
 
   <!-- Day Navigation -->
-  <div class="day-nav">
+  <div class="day-nav" style="position:relative">
     <button class="nav-btn" id="prevDay" onclick="changeDay(-1)">‹</button>
-    <div class="date-center">
+    <div class="date-center" onclick="openDatePicker()" title="Tap to jump to any date">
       <div class="date-str" id="dateStr">—</div>
-      <div class="today-badge" id="todayBadge">TODAY</div>
+      <div class="today-badge" id="todayBadge">TODAY · tap to change date</div>
+      <input type="date" id="datePicker" onchange="jumpToDate(this.value)">
     </div>
     <button class="nav-btn" id="nextDay" onclick="changeDay(1)" disabled>›</button>
   </div>
@@ -143,6 +149,9 @@
       <div class="stat"><div class="v" id="totP">0g</div><div class="l">protein</div></div>
       <div class="stat"><div class="v" id="totC">0g</div><div class="l">carbs</div></div>
       <div class="stat"><div class="v" id="totF">0g</div><div class="l">fat</div></div>
+    </div>
+    <div style="text-align:right;margin-top:6px;font-size:11px;color:var(--muted);">
+      Auto-saved to browser<span class="save-dot" id="saveDot"></span>
     </div>
   </div>
 
@@ -259,7 +268,7 @@ const FOODS = [
   {name:"Roti / Chapati",cat:"Indian",unit:"1 roti",cal:80,p:3,c:15,f:1.5},
   {name:"Phulka",cat:"Indian",unit:"1 small",cal:65,p:2,c:12,f:1},
   {name:"Paratha (plain)",cat:"Indian",unit:"1 paratha",cal:200,p:4,c:30,f:7},
-  {name:"Aloo Paratha",cat:"Indian",unit:"1 paratha",cal:270,p:6,c:40,f:9},
+  {name:"Aloo Paratha",cat:"Indian",unit:"1 paratha",cal:240,p:6,c:36,f:8},
   {name:"Methi Paratha",cat:"Indian",unit:"1 paratha",cal:230,p:5,c:33,f:8},
   {name:"Puri",cat:"Indian",unit:"1 puri",cal:80,p:2,c:11,f:3.5},
   {name:"Makki ki Roti (Corn Bread)",cat:"Indian",unit:"1 roti",cal:90,p:2,c:18,f:1.5},
@@ -564,12 +573,30 @@ function changeDay(delta) {
   renderAll();
 }
 
+function openDatePicker() {
+  const p = document.getElementById('datePicker');
+  p.max = todayStr();
+  p.value = currentDate;
+  p.style.pointerEvents = 'auto';
+  p.click();
+  p.style.pointerEvents = 'none';
+}
+
+function jumpToDate(val) {
+  if (!val || val > todayStr()) return;
+  currentDate = val;
+  updateDateUI();
+  renderAll();
+}
+
 function updateDateUI() {
   const isToday = currentDate === todayStr();
   const d = new Date(currentDate + 'T00:00:00');
   document.getElementById('dateStr').textContent =
     d.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
-  document.getElementById('todayBadge').style.visibility = isToday ? 'visible' : 'hidden';
+  const badge = document.getElementById('todayBadge');
+  badge.style.visibility = 'visible';
+  badge.textContent = isToday ? 'TODAY · tap to change date' : 'tap to jump to a date';
   document.getElementById('nextDay').disabled = isToday;
 }
 
@@ -593,7 +620,11 @@ async function loadDay(date) {
 function emptyDay() { return {breakfast:[],lunch:[],dinner:[],extra:[]}; }
 
 async function saveDay(data, date) {
-  try { await storage.set(dayKey(date || currentDate), JSON.stringify(data)); }
+  try {
+    await storage.set(dayKey(date || currentDate), JSON.stringify(data));
+    const dot = document.getElementById('saveDot');
+    if (dot) { dot.classList.add('show'); setTimeout(() => dot.classList.remove('show'), 1500); }
+  }
   catch(e) { console.error(e); }
 }
 
