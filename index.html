@@ -8,190 +8,283 @@
   :root{
     --bg:#0f1115; --card:#1a1d24; --accent:#5fb878; --accent2:#e8a33d;
     --text:#e8e8ea; --muted:#8b8f99; --danger:#e05c5c; --border:#2a2e38;
+    --c-bf:#e8a33d; --c-lu:#5fb878; --c-dn:#7b8ef7; --c-ex:#e06cb8;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    background:var(--bg); color:var(--text); padding-bottom:40px;
-  }
-  .app{max-width:480px; margin:0 auto; padding:16px;}
-  h1{font-size:20px; font-weight:700; margin:8px 0 4px;}
-  .sub{color:var(--muted); font-size:13px; margin-bottom:18px;}
-  .card{
-    background:var(--card); border:1px solid var(--border); border-radius:14px;
-    padding:16px; margin-bottom:14px;
-  }
-  .totals{display:flex; justify-content:space-between; gap:8px;}
-  .totals .stat{text-align:center; flex:1;}
-  .totals .stat .v{font-size:20px; font-weight:700;}
-  .totals .stat .l{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding-bottom:50px;}
+  .app{max-width:480px;margin:0 auto;padding:16px;}
+  h1{font-size:20px;font-weight:700;margin:8px 0 4px;}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:16px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;}
+
+  /* Day Navigation */
+  .day-nav{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 4px;margin-bottom:12px;gap:4px;}
+  .nav-btn{background:none;border:none;color:var(--text);font-size:26px;cursor:pointer;padding:0 10px;line-height:1;flex-shrink:0;}
+  .nav-btn:disabled{color:var(--border);cursor:default;}
+  .date-center{flex:1;text-align:center;}
+  .date-str{font-size:14px;font-weight:600;}
+  .today-badge{font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.06em;margin-top:1px;}
+
+  /* Totals */
+  .totals{display:flex;justify-content:space-between;gap:8px;}
+  .stat{text-align:center;flex:1;}
+  .stat .v{font-size:20px;font-weight:700;}
+  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
   .stat.cal .v{color:var(--accent2);}
-  label{display:block; font-size:13px; color:var(--muted); margin-bottom:4px; margin-top:12px;}
+
+  /* Meal Sections */
+  .meal-sec{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+  .meal-sec.bf{border-left:3px solid var(--c-bf);}
+  .meal-sec.lu{border-left:3px solid var(--c-lu);}
+  .meal-sec.dn{border-left:3px solid var(--c-dn);}
+  .meal-sec.ex{border-left:3px solid var(--c-ex);}
+  .meal-head{display:flex;align-items:center;padding:11px 14px;gap:8px;}
+  .meal-icon{font-size:17px;line-height:1;flex-shrink:0;}
+  .meal-title{font-size:14px;font-weight:700;flex:1;}
+  .meal-kcal{font-size:12px;color:var(--muted);white-space:nowrap;}
+  .add-btn{background:var(--accent);color:#0f1115;border:none;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+  .meal-items{padding:0 14px 10px;}
+  .m-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);gap:8px;}
+  .m-item:last-child{border-bottom:none;}
+  .m-iname{font-size:13px;font-weight:600;}
+  .m-imeta{font-size:11px;color:var(--muted);margin-top:2px;}
+  .m-ical{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
+  .del{background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;padding:2px 0 0 6px;line-height:1;}
+  .m-empty{color:var(--muted);font-size:12px;padding:4px 0 2px;text-align:center;}
+
+  /* Bottom Drawer */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:none;}
+  .overlay.open{display:block;}
+  .drawer{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--card);border-radius:20px 20px 0 0;z-index:100;max-height:88vh;overflow-y:auto;display:none;}
+  .drawer.open{display:block;}
+  .drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+  .drawer-head{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:10px;}
+  .drawer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .drawer-title{font-size:15px;font-weight:700;flex:1;}
+  .drawer-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;line-height:1;}
+  .drawer-body{padding:14px 16px 28px;}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:14px;}
+  .tab{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:13px;cursor:pointer;background:#11131a;border:1px solid var(--border);color:var(--muted);}
+  .tab.active{background:var(--accent);color:#0f1115;font-weight:700;border-color:var(--accent);}
+
+  /* Inputs */
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;margin-top:12px;}
   input[type=text],input[type=search],input[type=number]{
-    width:100%; background:#11131a; border:1px solid var(--border); border-radius:8px;
-    color:var(--text); padding:10px 12px; font-size:14px; font-family:inherit;
-    -moz-appearance:textfield; outline:none;
+    width:100%;background:#11131a;border:1px solid var(--border);border-radius:8px;
+    color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;
+    -moz-appearance:textfield;outline:none;
   }
   input[type=text]:focus,input[type=search]:focus,input[type=number]:focus{border-color:var(--accent);}
   input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;}
   input[type=search]::-webkit-search-cancel-button{display:none;}
-  button{
-    background:var(--accent); color:#0f1115; border:none; border-radius:10px;
-    padding:12px 16px; font-size:14px; font-weight:700; cursor:pointer; width:100%; margin-top:14px;
-  }
-  button:active{opacity:.85;}
-  button.secondary{background:#2a2e38; color:var(--text); font-weight:600;}
-  .tabs{display:flex; gap:8px; margin-bottom:14px;}
-  .tab{
-    flex:1; text-align:center; padding:8px; border-radius:8px; font-size:13px; cursor:pointer;
-    background:var(--card); border:1px solid var(--border); color:var(--muted);
-  }
-  .tab.active{background:var(--accent); color:#0f1115; font-weight:700; border-color:var(--accent);}
-  .results{margin-top:10px; max-height:260px; overflow-y:auto;}
-  .result-item{
-    padding:10px 12px; border-radius:8px; cursor:pointer;
-    display:flex; justify-content:space-between; align-items:center; gap:8px;
-  }
-  .result-item:hover,.result-item.active{background:#11131a;}
-  .result-item .rname{font-size:14px; font-weight:600;}
-  .result-item .rmeta{font-size:11px; color:var(--muted); margin-top:1px;}
-  .result-item .rcal{font-size:13px; font-weight:700; color:var(--accent2); white-space:nowrap;}
-  .empty-search{color:var(--muted); font-size:13px; text-align:center; padding:18px 0;}
-  .divider{height:1px; background:var(--border); margin:14px 0;}
-  .sel-name{font-size:15px; font-weight:700; margin-bottom:2px;}
-  .sel-meta{font-size:12px; color:var(--muted); margin-bottom:2px;}
-  .qty-row{display:flex; align-items:center; gap:10px; margin-top:12px;}
-  .qty-row .ql{font-size:13px; color:var(--muted); white-space:nowrap; flex-shrink:0;}
-  .qty-row input{width:80px; flex-shrink:0;}
-  .qty-unit{font-size:13px; color:var(--muted); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
-  .sel-total{
-    background:#11131a; border-radius:8px; padding:10px 12px; margin-top:10px;
-    display:flex; justify-content:space-between; font-size:13px;
-  }
-  .sel-total .tcal{font-weight:700; color:var(--accent2);}
-  .sel-total .tmac{color:var(--muted);}
-  .macro-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:4px;}
-  .macro-grid > div label{margin-top:0;}
-  .tag{
-    display:inline-block; background:#22262f; border-radius:4px;
-    padding:1px 6px; font-size:10px; color:var(--muted); margin-left:6px; vertical-align:middle;
-  }
-  .meal-item{
-    display:flex; justify-content:space-between; align-items:flex-start;
-    padding:10px 0; border-bottom:1px solid var(--border); gap:10px;
-  }
-  .meal-item:last-child{border-bottom:none;}
-  .meal-item .name{font-size:14px; font-weight:600;}
-  .meal-item .macros{font-size:11px; color:var(--muted); margin-top:2px;}
-  .meal-item .cal{font-size:14px; font-weight:700; color:var(--accent2); white-space:nowrap;}
-  .del{background:none; border:none; color:var(--danger); font-size:12px; width:auto; margin:0; padding:0 0 0 8px; cursor:pointer;}
-  .common-list{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
-  .chip{
-    background:#11131a; border:1px solid var(--border); border-radius:20px;
-    padding:6px 12px; font-size:12px; cursor:pointer; color:var(--text);
-  }
+  .btn-p{background:var(--accent);color:#0f1115;border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:14px;}
+  .btn-s{background:#2a2e38;color:var(--text);border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:12px;}
+
+  /* Search results */
+  .results{margin-top:10px;max-height:210px;overflow-y:auto;}
+  .ri{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .ri:hover,.ri.sel{background:#11131a;}
+  .rname{font-size:14px;font-weight:600;}
+  .rmeta{font-size:11px;color:var(--muted);margin-top:1px;}
+  .rcal{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
+  .tag{display:inline-block;background:#22262f;border-radius:4px;padding:1px 6px;font-size:10px;color:var(--muted);margin-left:6px;vertical-align:middle;}
+  .es{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;}
+
+  /* Selected food */
+  .divider{height:1px;background:var(--border);margin:14px 0;}
+  .sel-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+  .sel-meta{font-size:12px;color:var(--muted);}
+  .qty-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
+  .ql{font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+  .qty-row input{width:80px;flex-shrink:0;}
+  .qty-unit{font-size:13px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .sel-total{background:#11131a;border-radius:8px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;font-size:13px;}
+  .tcal{font-weight:700;color:var(--accent2);}
+  .tmac{color:var(--muted);}
+
+  /* Manual grid */
+  .macro-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+  .macro-grid>div label{margin-top:0;}
+
+  /* Quick add chips */
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .chip{background:#11131a;border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--text);}
   .chip:active{background:#22262f;}
-  .empty{color:var(--muted); font-size:13px; text-align:center; padding:14px 0;}
-  .err{color:var(--danger); font-size:13px; margin-top:8px;}
+
+  .empty{color:var(--muted);font-size:13px;text-align:center;padding:10px 0;}
+  .err{color:var(--danger);font-size:13px;margin-top:8px;}
+
+  /* Toast */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2a2e38;color:var(--text);padding:9px 20px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;border:1px solid var(--border);}
+  .toast.show{opacity:1;}
 </style>
 </head>
 <body>
 <div class="app">
   <h1>🍽️ Calorie Tracker</h1>
-  <div class="sub">Search 200+ foods or add manually — no account needed</div>
+  <div class="sub">Day-wise meal log · Breakfast · Lunch · Dinner · Snacks</div>
 
+  <!-- Day Navigation -->
+  <div class="day-nav">
+    <button class="nav-btn" id="prevDay" onclick="changeDay(-1)">‹</button>
+    <div class="date-center">
+      <div class="date-str" id="dateStr">—</div>
+      <div class="today-badge" id="todayBadge">TODAY</div>
+    </div>
+    <button class="nav-btn" id="nextDay" onclick="changeDay(1)" disabled>›</button>
+  </div>
+
+  <!-- Daily Totals -->
   <div class="card">
     <div class="totals">
-      <div class="stat cal"><div class="v" id="totCal">0</div><div class="l">kcal today</div></div>
+      <div class="stat cal"><div class="v" id="totCal">0</div><div class="l">kcal</div></div>
       <div class="stat"><div class="v" id="totP">0g</div><div class="l">protein</div></div>
       <div class="stat"><div class="v" id="totC">0g</div><div class="l">carbs</div></div>
       <div class="stat"><div class="v" id="totF">0g</div><div class="l">fat</div></div>
     </div>
   </div>
 
-  <div class="tabs">
-    <div class="tab active" id="t-search" onclick="switchTab('search')">🔍 Search Food</div>
-    <div class="tab" id="t-manual" onclick="switchTab('manual')">✏️ Manual Entry</div>
+  <!-- Meal Sections -->
+  <div class="meal-sec bf">
+    <div class="meal-head">
+      <span class="meal-icon">🌅</span>
+      <span class="meal-title">Breakfast</span>
+      <span class="meal-kcal" id="kcal-breakfast">0 kcal</span>
+      <button class="add-btn" onclick="openAdd('breakfast')">+ Add</button>
+    </div>
+    <div class="meal-items" id="items-breakfast"><div class="m-empty">Nothing added yet</div></div>
   </div>
 
-  <!-- Search panel -->
-  <div id="panel-search" class="card">
-    <input type="search" id="searchInput" placeholder="e.g. roti, dal, chicken, apple..." autocomplete="off">
-    <div class="results" id="searchResults">
-      <div class="empty-search">Type to search 200+ foods</div>
+  <div class="meal-sec lu">
+    <div class="meal-head">
+      <span class="meal-icon">☀️</span>
+      <span class="meal-title">Lunch</span>
+      <span class="meal-kcal" id="kcal-lunch">0 kcal</span>
+      <button class="add-btn" onclick="openAdd('lunch')">+ Add</button>
     </div>
-    <div id="selPanel" style="display:none">
-      <div class="divider"></div>
-      <div class="sel-name" id="selName"></div>
-      <div class="sel-meta" id="selMeta"></div>
-      <div class="qty-row">
-        <span class="ql">Qty</span>
-        <input type="number" id="qtyInput" value="1" min="0.1" step="0.5">
-        <span class="qty-unit" id="selUnit"></span>
-      </div>
-      <div class="sel-total">
-        <span class="tcal" id="selTotalCal">0 kcal</span>
-        <span class="tmac" id="selTotalMac">P 0g · C 0g · F 0g</span>
-      </div>
-      <button id="addBtn">Add to Log</button>
-    </div>
+    <div class="meal-items" id="items-lunch"><div class="m-empty">Nothing added yet</div></div>
   </div>
 
-  <!-- Manual entry panel -->
-  <div id="panel-manual" class="card" style="display:none">
-    <label style="margin-top:0">Food name</label>
-    <input type="text" id="manName" placeholder="e.g. Homemade khichdi, protein bar...">
-    <div class="macro-grid">
-      <div><label>Calories (kcal)</label><input type="number" id="manCal" placeholder="0" min="0"></div>
-      <div><label>Protein (g)</label><input type="number" id="manP" placeholder="0" min="0"></div>
-      <div><label>Carbs (g)</label><input type="number" id="manC" placeholder="0" min="0"></div>
-      <div><label>Fat (g)</label><input type="number" id="manF" placeholder="0" min="0"></div>
+  <div class="meal-sec dn">
+    <div class="meal-head">
+      <span class="meal-icon">🌙</span>
+      <span class="meal-title">Dinner</span>
+      <span class="meal-kcal" id="kcal-dinner">0 kcal</span>
+      <button class="add-btn" onclick="openAdd('dinner')">+ Add</button>
     </div>
-    <div id="manErr" class="err" style="display:none"></div>
-    <button id="manAddBtn">Add to Log</button>
+    <div class="meal-items" id="items-dinner"><div class="m-empty">Nothing added yet</div></div>
   </div>
 
+  <div class="meal-sec ex">
+    <div class="meal-head">
+      <span class="meal-icon">🍵</span>
+      <span class="meal-title">Snacks / Tea / Extra</span>
+      <span class="meal-kcal" id="kcal-extra">0 kcal</span>
+      <button class="add-btn" onclick="openAdd('extra')">+ Add</button>
+    </div>
+    <div class="meal-items" id="items-extra"><div class="m-empty">Nothing added yet</div></div>
+  </div>
+
+  <!-- Quick Add -->
   <div class="card">
-    <label style="margin-top:0">Quick add — recent meals</label>
-    <div id="commonList" class="common-list">
-      <span class="empty" style="padding:4px 0; font-size:12px;">Meals you log will appear here</span>
+    <label style="margin-top:0">Quick add — recent items</label>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Opens + Add panel, or taps add directly to Snacks/Extra</div>
+    <div id="commonList" class="chips">
+      <span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span>
     </div>
   </div>
 
-  <div class="card">
-    <label style="margin-top:0">Today's log</label>
-    <div id="mealLog"><div class="empty">No meals logged yet today</div></div>
-  </div>
-
-  <button class="secondary" id="resetDayBtn">Start New Day</button>
+  <button class="btn-s" id="resetDayBtn">Clear Today's Log</button>
 </div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="closeAdd()"></div>
+
+<!-- Bottom Drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-head">
+    <div class="drawer-dot" id="drawerDot"></div>
+    <div class="drawer-title" id="drawerTitle">Add Food</div>
+    <button class="drawer-close" onclick="closeAdd()">×</button>
+  </div>
+  <div class="drawer-body">
+    <div class="tabs">
+      <div class="tab active" id="t-search" onclick="switchTab('search')">🔍 Search</div>
+      <div class="tab" id="t-manual" onclick="switchTab('manual')">✏️ Manual</div>
+    </div>
+
+    <div id="panel-search">
+      <input type="search" id="searchInput" placeholder="e.g. poha, momos, dal, chicken..." autocomplete="off">
+      <div class="results" id="searchResults"><div class="es">Search 260+ Indian &amp; global foods</div></div>
+      <div id="selPanel" style="display:none">
+        <div class="divider"></div>
+        <div class="sel-name" id="selName"></div>
+        <div class="sel-meta" id="selMeta"></div>
+        <div class="qty-row">
+          <span class="ql">Qty</span>
+          <input type="number" id="qtyInput" value="1" min="0.1" step="0.5">
+          <span class="qty-unit" id="selUnit"></span>
+        </div>
+        <div class="sel-total">
+          <span class="tcal" id="selTotalCal">0 kcal</span>
+          <span class="tmac" id="selTotalMac">P 0g · C 0g · F 0g</span>
+        </div>
+        <button class="btn-p" id="addFoodBtn">Add to Log</button>
+      </div>
+    </div>
+
+    <div id="panel-manual" style="display:none">
+      <label style="margin-top:0">Food name</label>
+      <input type="text" id="manName" placeholder="e.g. Ghar ki aloo sabzi...">
+      <div class="macro-grid">
+        <div><label>Calories</label><input type="number" id="manCal" placeholder="0" min="0"></div>
+        <div><label>Protein (g)</label><input type="number" id="manP" placeholder="0" min="0"></div>
+        <div><label>Carbs (g)</label><input type="number" id="manC" placeholder="0" min="0"></div>
+        <div><label>Fat (g)</label><input type="number" id="manF" placeholder="0" min="0"></div>
+      </div>
+      <div id="manErr" class="err" style="display:none"></div>
+      <button class="btn-p" id="manAddBtn">Add to Log</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const FOODS = [
-  // Indian Bread & Breakfast
+  // Indian Bread
   {name:"Roti / Chapati",cat:"Indian",unit:"1 roti",cal:80,p:3,c:15,f:1.5},
   {name:"Phulka",cat:"Indian",unit:"1 small",cal:65,p:2,c:12,f:1},
   {name:"Paratha (plain)",cat:"Indian",unit:"1 paratha",cal:200,p:4,c:30,f:7},
   {name:"Aloo Paratha",cat:"Indian",unit:"1 paratha",cal:270,p:6,c:40,f:9},
   {name:"Methi Paratha",cat:"Indian",unit:"1 paratha",cal:230,p:5,c:33,f:8},
   {name:"Puri",cat:"Indian",unit:"1 puri",cal:80,p:2,c:11,f:3.5},
-  {name:"Idli",cat:"Indian",unit:"1 idli",cal:39,p:2,c:8,f:0.2},
-  {name:"Dosa (plain)",cat:"Indian",unit:"1 medium",cal:120,p:2,c:20,f:3},
-  {name:"Masala Dosa",cat:"Indian",unit:"1 dosa",cal:220,p:5,c:35,f:7},
-  {name:"Poha",cat:"Indian",unit:"1 katori (150g)",cal:180,p:4,c:32,f:4},
-  {name:"Upma",cat:"Indian",unit:"1 katori (150g)",cal:190,p:5,c:30,f:6},
-  {name:"Besan Chilla",cat:"Indian",unit:"1 chilla",cal:120,p:6,c:15,f:4},
+  {name:"Makki ki Roti (Corn Bread)",cat:"Indian",unit:"1 roti",cal:90,p:2,c:18,f:1.5},
+  {name:"Bajra Roti (Pearl Millet Bread)",cat:"Indian",unit:"1 roti",cal:85,p:3,c:16,f:1.5},
+  {name:"Jowar Roti (Sorghum Bread)",cat:"Indian",unit:"1 roti",cal:80,p:2.5,c:17,f:1},
+  {name:"Missi Roti (Gram Flour Bread)",cat:"Indian",unit:"1 roti",cal:120,p:5,c:18,f:3},
+  {name:"Thepla (Methi Flatbread)",cat:"Indian",unit:"1 thepla",cal:110,p:3,c:16,f:4},
+  {name:"Sattu Paratha (Roasted Gram Bread)",cat:"Indian",unit:"1 paratha",cal:280,p:9,c:40,f:9},
+  {name:"Ghee Roti (Roti with Ghee)",cat:"Indian",unit:"1 roti",cal:125,p:3,c:15,f:6.5},
   // Rice & Dal
   {name:"Rice (cooked)",cat:"Indian",unit:"1 katori (150g)",cal:195,p:4,c:42,f:0.5},
   {name:"Brown Rice (cooked)",cat:"Indian",unit:"1 katori (150g)",cal:180,p:4,c:38,f:1.5},
   {name:"Dal Tadka",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:18,f:4},
   {name:"Dal Makhani",cat:"Indian",unit:"1 katori (150ml)",cal:200,p:9,c:20,f:8},
+  {name:"Dal Fry (Yellow Dal)",cat:"Indian",unit:"1 katori (150ml)",cal:155,p:9,c:18,f:5},
   {name:"Chana Dal",cat:"Indian",unit:"1 katori (150ml)",cal:160,p:10,c:22,f:3},
+  {name:"Chana Dal with Lauki",cat:"Indian",unit:"1 katori (150ml)",cal:140,p:8,c:18,f:3},
   {name:"Rajma",cat:"Indian",unit:"1 katori (150ml)",cal:170,p:10,c:24,f:3},
   {name:"Chole",cat:"Indian",unit:"1 katori (150ml)",cal:175,p:10,c:25,f:4},
   {name:"Sambar",cat:"Indian",unit:"1 katori (150ml)",cal:90,p:5,c:12,f:2},
   {name:"Moong Dal",cat:"Indian",unit:"1 katori (150ml)",cal:130,p:8,c:18,f:2},
-  {name:"Arhar Dal",cat:"Indian",unit:"1 katori (150ml)",cal:145,p:9,c:19,f:3},
+  {name:"Dhuli Moong Dal (Yellow Split)",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:8,c:16,f:1.5},
+  {name:"Arhar / Toor Dal",cat:"Indian",unit:"1 katori (150ml)",cal:145,p:9,c:19,f:3},
+  {name:"Sabut Masoor Dal (Whole Red Lentil)",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:20,f:3},
+  {name:"Panchmel Dal (Five Lentil Mix)",cat:"Indian",unit:"1 katori (150ml)",cal:160,p:10,c:20,f:4},
   // Curries & Sabzi
   {name:"Paneer Butter Masala",cat:"Indian",unit:"1 katori (150ml)",cal:280,p:14,c:12,f:20},
   {name:"Palak Paneer",cat:"Indian",unit:"1 katori (150ml)",cal:230,p:12,c:10,f:16},
@@ -201,9 +294,11 @@ const FOODS = [
   {name:"Butter Chicken",cat:"Indian",unit:"1 katori (150ml)",cal:280,p:24,c:10,f:16},
   {name:"Mutton Curry",cat:"Indian",unit:"1 katori (150ml)",cal:280,p:24,c:6,f:18},
   {name:"Fish Curry",cat:"Indian",unit:"1 katori (150ml)",cal:200,p:20,c:6,f:10},
-  {name:"Aloo Gobi",cat:"Indian",unit:"1 katori (150ml)",cal:130,p:4,c:20,f:5},
-  {name:"Bhindi Masala",cat:"Indian",unit:"1 katori (150ml)",cal:110,p:3,c:14,f:5},
-  {name:"Baingan Bharta",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:3,c:15,f:6},
+  {name:"Egg Curry",cat:"Indian",unit:"2 eggs in gravy",cal:220,p:14,c:8,f:14},
+  {name:"Keema (Minced Mutton Curry)",cat:"Indian",unit:"1 katori (150ml)",cal:260,p:22,c:6,f:16},
+  {name:"Aloo Gobi (Cauliflower Potato)",cat:"Indian",unit:"1 katori (150ml)",cal:130,p:4,c:20,f:5},
+  {name:"Bhindi Masala (Okra)",cat:"Indian",unit:"1 katori (150ml)",cal:110,p:3,c:14,f:5},
+  {name:"Baingan Bharta (Roasted Brinjal)",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:3,c:15,f:6},
   {name:"Mix Veg Curry",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:4,c:16,f:5},
   {name:"Aloo Matar",cat:"Indian",unit:"1 katori (150ml)",cal:145,p:4,c:22,f:5},
   {name:"Kadhi Pakora",cat:"Indian",unit:"1 katori (150ml)",cal:170,p:6,c:18,f:8},
@@ -215,96 +310,57 @@ const FOODS = [
   {name:"Khichdi",cat:"Indian",unit:"1 katori (150g)",cal:180,p:7,c:30,f:3},
   {name:"Curd Rice",cat:"Indian",unit:"1 katori (150g)",cal:165,p:5,c:28,f:3},
   {name:"Pulao",cat:"Indian",unit:"1 katori (150g)",cal:230,p:5,c:42,f:4},
-  {name:"Fried Rice (veg)",cat:"Indian",unit:"1 katori (150g)",cal:280,p:6,c:50,f:6},
-  // Snacks
-  {name:"Samosa",cat:"Snacks",unit:"1 samosa",cal:130,p:3,c:17,f:6},
-  {name:"Pakora / Bhajiya",cat:"Snacks",unit:"5 pieces",cal:200,p:5,c:22,f:10},
-  {name:"Vada Pav",cat:"Snacks",unit:"1 piece",cal:290,p:7,c:45,f:9},
-  {name:"Pav Bhaji",cat:"Snacks",unit:"1 serving (2 pav)",cal:380,p:9,c:58,f:12},
-  {name:"Dhokla",cat:"Snacks",unit:"2 pieces",cal:100,p:5,c:16,f:2},
-  {name:"Bhel Puri",cat:"Snacks",unit:"1 bowl",cal:180,p:4,c:32,f:5},
-  {name:"Sev Puri",cat:"Snacks",unit:"1 plate (5 pcs)",cal:220,p:5,c:35,f:8},
-  {name:"Pani Puri",cat:"Snacks",unit:"6 pieces",cal:170,p:3,c:28,f:5},
-  {name:"Kachori",cat:"Snacks",unit:"1 piece",cal:180,p:4,c:24,f:8},
-  {name:"Aloo Tikki",cat:"Snacks",unit:"2 pieces",cal:200,p:4,c:30,f:7},
-  {name:"Maggi Noodles",cat:"Snacks",unit:"1 packet cooked",cal:360,p:8,c:50,f:14},
-  {name:"Khakhra",cat:"Snacks",unit:"2 pieces",cal:90,p:3,c:15,f:2.5},
-  // Sweets
-  {name:"Gulab Jamun",cat:"Sweets",unit:"2 pieces",cal:220,p:4,c:38,f:7},
-  {name:"Rasgulla",cat:"Sweets",unit:"2 pieces",cal:180,p:5,c:34,f:2},
-  {name:"Besan Ladoo",cat:"Sweets",unit:"1 ladoo",cal:170,p:3,c:25,f:7},
-  {name:"Kheer",cat:"Sweets",unit:"1 small bowl",cal:190,p:5,c:28,f:6},
-  {name:"Suji Halwa",cat:"Sweets",unit:"1 katori",cal:250,p:4,c:40,f:8},
-  {name:"Gajar Halwa",cat:"Sweets",unit:"1 katori",cal:280,p:5,c:40,f:11},
-  {name:"Jalebi",cat:"Sweets",unit:"2 pieces",cal:150,p:1,c:32,f:3},
-  {name:"Barfi",cat:"Sweets",unit:"1 piece",cal:120,p:3,c:18,f:5},
-  {name:"Rasmalai",cat:"Sweets",unit:"2 pieces",cal:170,p:7,c:22,f:6},
-  {name:"Shrikhand",cat:"Sweets",unit:"1 small bowl",cal:220,p:7,c:32,f:7},
-  {name:"Ice Cream",cat:"Sweets",unit:"1 scoop",cal:130,p:2,c:16,f:7},
-  // Dairy
-  {name:"Full Fat Milk",cat:"Dairy",unit:"1 glass (200ml)",cal:130,p:7,c:10,f:7},
-  {name:"Toned Milk",cat:"Dairy",unit:"1 glass (200ml)",cal:100,p:7,c:10,f:3.5},
-  {name:"Dahi / Curd",cat:"Dairy",unit:"1 katori (150g)",cal:85,p:5,c:9,f:3.5},
-  {name:"Paneer",cat:"Dairy",unit:"100g",cal:265,p:18,c:2,f:20},
-  {name:"Sweet Lassi",cat:"Dairy",unit:"1 glass (250ml)",cal:200,p:6,c:30,f:6},
-  {name:"Chaas / Buttermilk",cat:"Dairy",unit:"1 glass (250ml)",cal:40,p:2,c:4,f:1},
-  {name:"Ghee",cat:"Dairy",unit:"1 tsp (5g)",cal:45,p:0,c:0,f:5},
-  {name:"Butter",cat:"Dairy",unit:"1 tsp (5g)",cal:35,p:0,c:0,f:4},
-  {name:"Cheese slice",cat:"Dairy",unit:"1 slice (20g)",cal:70,p:4,c:0.5,f:6},
-  // Drinks
-  {name:"Chai (with milk)",cat:"Drinks",unit:"1 cup (150ml)",cal:60,p:2,c:8,f:2},
-  {name:"Coffee (with milk)",cat:"Drinks",unit:"1 cup (150ml)",cal:50,p:2,c:6,f:2},
-  {name:"Black Tea / Coffee",cat:"Drinks",unit:"1 cup",cal:5,p:0,c:1,f:0},
-  {name:"Coconut Water",cat:"Drinks",unit:"1 glass (200ml)",cal:46,p:2,c:9,f:0.5},
-  {name:"Fresh Lime Soda",cat:"Drinks",unit:"1 glass",cal:25,p:0,c:6,f:0},
-  {name:"Orange Juice",cat:"Drinks",unit:"1 glass (200ml)",cal:90,p:1,c:21,f:0.2},
-  {name:"Mango Shake",cat:"Drinks",unit:"1 glass (300ml)",cal:230,p:5,c:40,f:6},
-  {name:"Cold Coffee",cat:"Drinks",unit:"1 glass (300ml)",cal:200,p:6,c:30,f:7},
-  {name:"Soft Drink",cat:"Drinks",unit:"1 can (330ml)",cal:140,p:0,c:35,f:0},
-  // Fruits
-  {name:"Apple",cat:"Fruits",unit:"1 medium",cal:95,p:0.5,c:25,f:0.3},
-  {name:"Banana",cat:"Fruits",unit:"1 medium",cal:105,p:1,c:27,f:0.4},
-  {name:"Mango",cat:"Fruits",unit:"1 cup (165g)",cal:100,p:1,c:25,f:0.6},
-  {name:"Orange",cat:"Fruits",unit:"1 medium",cal:65,p:1,c:16,f:0.2},
-  {name:"Papaya",cat:"Fruits",unit:"1 cup (145g)",cal:55,p:1,c:14,f:0.2},
-  {name:"Watermelon",cat:"Fruits",unit:"1 slice (280g)",cal:85,p:2,c:21,f:0.4},
-  {name:"Grapes",cat:"Fruits",unit:"1 cup (150g)",cal:100,p:1,c:27,f:0.2},
-  {name:"Guava",cat:"Fruits",unit:"1 medium",cal:45,p:1.5,c:10,f:0.5},
-  {name:"Pomegranate",cat:"Fruits",unit:"1 cup seeds",cal:83,p:2,c:19,f:1},
-  {name:"Pineapple",cat:"Fruits",unit:"1 cup (165g)",cal:82,p:1,c:22,f:0.2},
-  {name:"Chikoo / Sapota",cat:"Fruits",unit:"1 medium",cal:80,p:0.5,c:20,f:0.5},
-  // Protein & Eggs
-  {name:"Boiled Egg",cat:"Protein",unit:"1 large",cal:78,p:6,c:0.6,f:5},
-  {name:"Fried Egg",cat:"Protein",unit:"1 large",cal:90,p:6,c:0.4,f:7},
-  {name:"Scrambled Eggs",cat:"Protein",unit:"2 eggs",cal:180,p:12,c:2,f:14},
-  {name:"Omelette (plain)",cat:"Protein",unit:"2 eggs",cal:160,p:12,c:1,f:12},
-  {name:"Chicken Breast (grilled)",cat:"Protein",unit:"100g",cal:165,p:31,c:0,f:3.6},
-  {name:"Chicken Tandoori",cat:"Protein",unit:"2 pieces (200g)",cal:280,p:32,c:4,f:14},
-  {name:"Grilled Fish",cat:"Protein",unit:"100g",cal:130,p:26,c:0,f:3},
-  {name:"Sprouts",cat:"Protein",unit:"1 katori (100g)",cal:50,p:4,c:7,f:0.5},
-  {name:"Soya Chunks (cooked)",cat:"Protein",unit:"1 katori (100g)",cal:125,p:18,c:9,f:1},
-  {name:"Peanuts",cat:"Protein",unit:"1 handful (30g)",cal:170,p:7,c:5,f:14},
-  {name:"Almonds",cat:"Protein",unit:"10 pieces",cal:82,p:3,c:3,f:7},
-  {name:"Cashews",cat:"Protein",unit:"10 pieces",cal:80,p:2,c:5,f:6.5},
-  {name:"Peanut Butter",cat:"Protein",unit:"1 tbsp",cal:95,p:4,c:3,f:8},
-  {name:"Whey Protein Shake",cat:"Protein",unit:"1 scoop (30g)",cal:120,p:24,c:3,f:1.5},
-  // Western & Others
-  {name:"Oats (cooked)",cat:"Western",unit:"1 bowl (180g)",cal:155,p:5,c:27,f:3},
-  {name:"Bread (white)",cat:"Western",unit:"1 slice",cal:79,p:3,c:15,f:1},
-  {name:"Bread (brown/wheat)",cat:"Western",unit:"1 slice",cal:69,p:3,c:13,f:1},
-  {name:"Sandwich (veg)",cat:"Western",unit:"1 sandwich",cal:220,p:7,c:32,f:7},
-  {name:"Sandwich (chicken)",cat:"Western",unit:"1 sandwich",cal:310,p:20,c:34,f:10},
-  {name:"Pasta (cooked)",cat:"Western",unit:"1 bowl (200g)",cal:250,p:9,c:48,f:2},
-  {name:"Pizza (regular)",cat:"Western",unit:"1 slice",cal:285,p:12,c:36,f:10},
-  {name:"Burger",cat:"Western",unit:"1 regular",cal:350,p:17,c:35,f:15},
-  {name:"French Fries",cat:"Western",unit:"medium serving",cal:340,p:4,c:44,f:16},
-  {name:"Caesar Salad",cat:"Western",unit:"1 bowl",cal:250,p:8,c:15,f:18},
-  {name:"Garden Salad",cat:"Western",unit:"1 bowl",cal:60,p:2,c:10,f:2},
-  {name:"Boiled Potato",cat:"Western",unit:"1 medium (150g)",cal:130,p:3,c:30,f:0.2},
-  {name:"Cornflakes with milk",cat:"Western",unit:"1 bowl",cal:200,p:5,c:38,f:3},
-  {name:"Muesli with milk",cat:"Western",unit:"1 bowl",cal:280,p:8,c:48,f:6},
-  // Sabzi — Dry & Semi-dry Vegetable Dishes
-  {name:"Ghee Roti (Roti with Ghee)",cat:"Sabzi",unit:"1 roti",cal:125,p:3,c:15,f:6.5},
+  {name:"Fried Rice (Veg)",cat:"Indian",unit:"1 katori (150g)",cal:280,p:6,c:50,f:6},
+  {name:"Sabudana Khichdi (Tapioca)",cat:"Indian",unit:"1 katori (150g)",cal:300,p:5,c:55,f:7},
+  {name:"Dalia (Broken Wheat Porridge)",cat:"Indian",unit:"1 katori (150g)",cal:150,p:5,c:28,f:2},
+  // Combo Plates
+  {name:"Dal Chawal (Dal + Rice)",cat:"Indian",unit:"1 plate",cal:345,p:13,c:60,f:4.5},
+  {name:"Rajma Chawal",cat:"Indian",unit:"1 plate",cal:365,p:14,c:64,f:3.5},
+  {name:"Kadhi Chawal (Kadhi + Rice)",cat:"Indian",unit:"1 plate",cal:350,p:10,c:58,f:9},
+  {name:"Chole Bhature",cat:"Indian",unit:"1 bhatura + chole",cal:450,p:12,c:65,f:14},
+  {name:"Puri Bhaji",cat:"Indian",unit:"2 puri + sabzi",cal:320,p:6,c:44,f:13},
+  {name:"Aloo Puri",cat:"Indian",unit:"2 puri + aloo",cal:340,p:6,c:48,f:13},
+  {name:"Dal Baati Churma",cat:"Indian",unit:"2 baati + dal",cal:480,p:12,c:65,f:16},
+  {name:"Litti Chokha",cat:"Indian",unit:"2 litti + chokha",cal:400,p:10,c:58,f:14},
+
+  // Breakfast — North & Central Indian
+  {name:"Poha (Flattened Rice)",cat:"Breakfast",unit:"1 katori (150g)",cal:180,p:4,c:32,f:4},
+  {name:"Aloo Poha",cat:"Breakfast",unit:"1 katori (150g)",cal:200,p:4,c:36,f:5},
+  {name:"Matar Poha",cat:"Breakfast",unit:"1 katori (150g)",cal:195,p:6,c:34,f:4},
+  {name:"Upma (Sooji Upma)",cat:"Breakfast",unit:"1 katori (150g)",cal:190,p:5,c:30,f:6},
+  {name:"Besan Chilla (Gram Flour Pancake)",cat:"Breakfast",unit:"2 cheela",cal:240,p:12,c:30,f:8},
+  {name:"Moong Dal Cheela",cat:"Breakfast",unit:"2 cheela",cal:200,p:11,c:28,f:6},
+  {name:"Sooji Cheela (Rava Pancake)",cat:"Breakfast",unit:"2 cheela",cal:180,p:5,c:28,f:6},
+  {name:"Bread Pakora",cat:"Breakfast",unit:"2 pieces",cal:280,p:7,c:38,f:11},
+  {name:"Bread Omelette",cat:"Breakfast",unit:"2 bread + 2 eggs",cal:340,p:18,c:30,f:16},
+  {name:"Anda Bhurji with Bread (Egg Bhurji)",cat:"Breakfast",unit:"2 eggs + 2 slices",cal:340,p:18,c:32,f:16},
+  {name:"Bread with Butter & Jam",cat:"Breakfast",unit:"2 slices",cal:200,p:4,c:30,f:8},
+  {name:"Puri Chole",cat:"Breakfast",unit:"2 puri + chole",cal:420,p:13,c:62,f:13},
+  {name:"Puri Halwa",cat:"Breakfast",unit:"2 puri + halwa",cal:420,p:5,c:62,f:16},
+  {name:"Bedmi Puri with Sabzi",cat:"Breakfast",unit:"2 puri + sabzi",cal:380,p:9,c:54,f:14},
+  {name:"Kachori Sabzi",cat:"Breakfast",unit:"1 kachori + sabzi",cal:310,p:7,c:42,f:12},
+  {name:"Namkeen Seviyan (Vermicelli Upma)",cat:"Breakfast",unit:"1 katori",cal:200,p:5,c:32,f:6},
+  {name:"Meethi Seviyan (Sweet Vermicelli)",cat:"Breakfast",unit:"1 katori",cal:240,p:4,c:42,f:6},
+  {name:"Dalia Namkeen (Savoury Porridge)",cat:"Breakfast",unit:"1 katori (150g)",cal:150,p:5,c:25,f:3},
+  {name:"Paratha with Dahi",cat:"Breakfast",unit:"1 paratha + dahi",cal:285,p:8,c:39,f:10.5},
+  {name:"Sabudana Vada",cat:"Breakfast",unit:"2 pieces",cal:180,p:4,c:28,f:6},
+  {name:"Bread Upma",cat:"Breakfast",unit:"1 bowl",cal:220,p:5,c:35,f:7},
+  // Breakfast — South Indian
+  {name:"Idli",cat:"Breakfast",unit:"1 idli",cal:39,p:2,c:8,f:0.2},
+  {name:"Dosa (Plain)",cat:"Breakfast",unit:"1 medium",cal:120,p:2,c:20,f:3},
+  {name:"Masala Dosa",cat:"Breakfast",unit:"1 dosa",cal:220,p:5,c:35,f:7},
+  {name:"Rava Dosa (Sooji Dosa)",cat:"Breakfast",unit:"1 dosa",cal:130,p:3,c:22,f:4},
+  {name:"Set Dosa",cat:"Breakfast",unit:"3 small dosas",cal:200,p:5,c:34,f:5},
+  {name:"Pesarattu (Green Moong Dosa)",cat:"Breakfast",unit:"1 dosa",cal:150,p:8,c:22,f:3},
+  {name:"Uttapam (Plain)",cat:"Breakfast",unit:"1 medium",cal:150,p:3,c:25,f:4},
+  {name:"Uttapam (Onion Tomato)",cat:"Breakfast",unit:"1 medium",cal:170,p:4,c:27,f:5},
+  {name:"Medu Vada",cat:"Breakfast",unit:"1 vada",cal:100,p:3,c:14,f:4},
+  {name:"Sambar Vada",cat:"Breakfast",unit:"2 vada + sambar",cal:280,p:10,c:36,f:9},
+  {name:"Ven Pongal (Rice & Moong Dal)",cat:"Breakfast",unit:"1 katori (150g)",cal:200,p:5,c:35,f:6},
+  {name:"Rava Kesari (Sweet Sooji Bath)",cat:"Breakfast",unit:"1 katori",cal:220,p:3,c:38,f:7},
+  {name:"Appam",cat:"Breakfast",unit:"2 pieces",cal:120,p:3,c:22,f:2},
+
+  // Sabzi — Dry & Semi-dry Vegetables
   {name:"Bhindi Bhujia (Okra Stir-fry)",cat:"Sabzi",unit:"1 katori (150g)",cal:120,p:3,c:12,f:6},
   {name:"Parwal Bhujia (Pointed Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:110,p:3,c:12,f:5},
   {name:"Aloo Sabzi (Potato Curry)",cat:"Sabzi",unit:"1 katori (150ml)",cal:150,p:3,c:25,f:5},
@@ -325,11 +381,77 @@ const FOODS = [
   {name:"Chaulai Saag (Amaranth Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:3,c:8,f:2},
   {name:"Gawar Phali Sabzi (Cluster Beans)",cat:"Sabzi",unit:"1 katori (150g)",cal:85,p:3,c:11,f:3},
   {name:"Sem Phali Sabzi (Flat Beans)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:3,c:10,f:3},
-  {name:"Chichinda Sabzi (Snake Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:65,p:2,c:8,f:2},
   {name:"Torai / Nenua Sabzi (Sponge Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:68,p:2,c:9,f:2},
   {name:"Matar Mushroom (Peas & Mushroom)",cat:"Sabzi",unit:"1 katori (150ml)",cal:130,p:6,c:14,f:5},
   {name:"Aloo Palak (Potato & Spinach)",cat:"Sabzi",unit:"1 katori (150ml)",cal:145,p:4,c:20,f:5},
-  // Dahi / Curd Variations
+
+  // Snacks — Street & Evening
+  {name:"Samosa",cat:"Snacks",unit:"1 samosa",cal:130,p:3,c:17,f:6},
+  {name:"Pakora / Bhajiya",cat:"Snacks",unit:"5 pieces",cal:200,p:5,c:22,f:10},
+  {name:"Bread Pakora (Street)",cat:"Snacks",unit:"2 pieces",cal:280,p:7,c:38,f:11},
+  {name:"Vada Pav",cat:"Snacks",unit:"1 piece",cal:290,p:7,c:45,f:9},
+  {name:"Pav Bhaji",cat:"Snacks",unit:"1 serving (2 pav)",cal:380,p:9,c:58,f:12},
+  {name:"Dhokla",cat:"Snacks",unit:"2 pieces",cal:100,p:5,c:16,f:2},
+  {name:"Bhel Puri",cat:"Snacks",unit:"1 bowl",cal:180,p:4,c:32,f:5},
+  {name:"Sev Puri",cat:"Snacks",unit:"1 plate (5 pcs)",cal:220,p:5,c:35,f:8},
+  {name:"Pani Puri / Golgappa",cat:"Snacks",unit:"6 pieces",cal:170,p:3,c:28,f:5},
+  {name:"Kachori",cat:"Snacks",unit:"1 piece",cal:180,p:4,c:24,f:8},
+  {name:"Aloo Tikki",cat:"Snacks",unit:"2 pieces",cal:200,p:4,c:30,f:7},
+  {name:"Aloo Chaat",cat:"Snacks",unit:"1 plate",cal:220,p:4,c:38,f:6},
+  {name:"Chana Chaat",cat:"Snacks",unit:"1 plate",cal:200,p:9,c:32,f:4},
+  {name:"Dahi Bhalla",cat:"Snacks",unit:"2 pieces",cal:220,p:8,c:32,f:6},
+  {name:"Bhutta / Corn Cob (Roasted)",cat:"Snacks",unit:"1 cob",cal:130,p:4,c:28,f:2},
+  {name:"Muri / Murmura Chaat",cat:"Snacks",unit:"1 bowl",cal:150,p:3,c:28,f:3},
+  {name:"Chuda with Dahi (Poha with Curd)",cat:"Snacks",unit:"1 katori",cal:200,p:6,c:35,f:4},
+  {name:"Chowmein (Street Style)",cat:"Snacks",unit:"1 plate",cal:380,p:8,c:58,f:12},
+  {name:"Veg Manchurian (Gravy)",cat:"Snacks",unit:"1 plate",cal:280,p:6,c:38,f:11},
+  {name:"Chicken Manchurian",cat:"Snacks",unit:"1 plate",cal:320,p:18,c:30,f:14},
+  {name:"Veg Frankie / Veg Roll",cat:"Snacks",unit:"1 roll",cal:280,p:7,c:42,f:9},
+  {name:"Egg Roll (Frankie)",cat:"Snacks",unit:"1 roll",cal:330,p:14,c:40,f:12},
+  {name:"Chicken Roll (Frankie)",cat:"Snacks",unit:"1 roll",cal:380,p:20,c:40,f:14},
+  {name:"Momos (Veg, Steamed)",cat:"Snacks",unit:"6 pieces",cal:200,p:6,c:32,f:5},
+  {name:"Momos (Chicken, Steamed)",cat:"Snacks",unit:"6 pieces",cal:240,p:14,c:28,f:8},
+  {name:"Momos (Fried)",cat:"Snacks",unit:"6 pieces",cal:300,p:8,c:36,f:13},
+  {name:"Egg Bhurji (Masala Scrambled Egg)",cat:"Snacks",unit:"2 eggs",cal:200,p:13,c:4,f:15},
+  {name:"Spring Roll (Veg)",cat:"Snacks",unit:"2 pieces",cal:200,p:4,c:28,f:8},
+  {name:"Sandwich (Veg, Grilled)",cat:"Snacks",unit:"1 sandwich",cal:220,p:7,c:32,f:7},
+  {name:"Sandwich (Chicken)",cat:"Snacks",unit:"1 sandwich",cal:310,p:20,c:34,f:10},
+  {name:"Maggi Noodles",cat:"Snacks",unit:"1 packet cooked",cal:360,p:8,c:50,f:14},
+  {name:"Khakhra",cat:"Snacks",unit:"2 pieces",cal:90,p:3,c:15,f:2.5},
+  {name:"Tea with Glucose Biscuits (2)",cat:"Snacks",unit:"1 cup + 2 biscuits",cal:110,p:2,c:20,f:3},
+  {name:"Tea with Marie Biscuits (4)",cat:"Snacks",unit:"1 cup + 4 biscuits",cal:130,p:2,c:25,f:3},
+  {name:"Tea with Parle-G (4 biscuits)",cat:"Snacks",unit:"1 cup + 4 biscuits",cal:125,p:2,c:24,f:3},
+  {name:"Tea with Namkeen / Mixture",cat:"Snacks",unit:"1 cup + 1 handful",cal:200,p:4,c:22,f:9},
+  {name:"Bhujia Sev",cat:"Snacks",unit:"1 handful (30g)",cal:160,p:4,c:18,f:8},
+  {name:"Namkeen (Mixed Snack Mix)",cat:"Snacks",unit:"1 handful (30g)",cal:140,p:4,c:16,f:7},
+  {name:"Mixture (Dry Snack)",cat:"Snacks",unit:"1 handful (30g)",cal:155,p:4,c:18,f:7},
+  {name:"Chivda (Flattened Rice Snack)",cat:"Snacks",unit:"1 handful (30g)",cal:120,p:3,c:18,f:4},
+  {name:"Shakarpara",cat:"Snacks",unit:"5 pieces",cal:120,p:2,c:18,f:5},
+  {name:"Papad (Roasted)",cat:"Snacks",unit:"1 papad",cal:35,p:2,c:5,f:1},
+  {name:"Papad (Fried)",cat:"Snacks",unit:"1 papad",cal:60,p:2,c:5,f:3.5},
+  {name:"Green Chutney (Mint/Coriander)",cat:"Snacks",unit:"2 tbsp",cal:15,p:0.5,c:2,f:0.3},
+  {name:"Imli Chutney (Tamarind)",cat:"Snacks",unit:"2 tbsp",cal:40,p:0.2,c:10,f:0.1},
+  {name:"Achar / Mixed Pickle",cat:"Snacks",unit:"1 tsp",cal:20,p:0,c:1,f:2},
+
+  // Sweets
+  {name:"Gulab Jamun",cat:"Sweets",unit:"2 pieces",cal:220,p:4,c:38,f:7},
+  {name:"Rasgulla",cat:"Sweets",unit:"2 pieces",cal:180,p:5,c:34,f:2},
+  {name:"Besan Ladoo",cat:"Sweets",unit:"1 ladoo",cal:170,p:3,c:25,f:7},
+  {name:"Kheer",cat:"Sweets",unit:"1 small bowl",cal:190,p:5,c:28,f:6},
+  {name:"Suji Halwa",cat:"Sweets",unit:"1 katori",cal:250,p:4,c:40,f:8},
+  {name:"Gajar Halwa (Carrot Halwa)",cat:"Sweets",unit:"1 katori",cal:280,p:5,c:40,f:11},
+  {name:"Jalebi",cat:"Sweets",unit:"2 pieces",cal:150,p:1,c:32,f:3},
+  {name:"Barfi",cat:"Sweets",unit:"1 piece",cal:120,p:3,c:18,f:5},
+  {name:"Rasmalai",cat:"Sweets",unit:"2 pieces",cal:170,p:7,c:22,f:6},
+  {name:"Shrikhand",cat:"Sweets",unit:"1 small bowl",cal:220,p:7,c:32,f:7},
+  {name:"Ice Cream",cat:"Sweets",unit:"1 scoop",cal:130,p:2,c:16,f:7},
+  {name:"Mishti Doi (Bengali Sweet Curd)",cat:"Sweets",unit:"1 small pot (120g)",cal:160,p:5,c:25,f:4},
+  {name:"Rava Kesari (Sooji Sheera)",cat:"Sweets",unit:"1 katori",cal:250,p:3,c:42,f:8},
+
+  // Dairy
+  {name:"Full Fat Milk",cat:"Dairy",unit:"1 glass (200ml)",cal:130,p:7,c:10,f:7},
+  {name:"Toned Milk",cat:"Dairy",unit:"1 glass (200ml)",cal:100,p:7,c:10,f:3.5},
+  {name:"Dahi / Curd (Plain)",cat:"Dairy",unit:"1 katori (150g)",cal:85,p:5,c:9,f:3.5},
   {name:"Dahi with Sugar (Meethi Dahi)",cat:"Dairy",unit:"1 katori (150g)",cal:140,p:5,c:22,f:3.5},
   {name:"Namkeen Dahi (Dahi with Salt)",cat:"Dairy",unit:"1 katori (150g)",cal:85,p:5,c:9,f:3.5},
   {name:"Dahi with Gur (Jaggery Curd)",cat:"Dairy",unit:"1 katori (150g)",cal:115,p:5,c:17,f:3.5},
@@ -337,183 +459,144 @@ const FOODS = [
   {name:"Boondi Raita",cat:"Dairy",unit:"1 katori (150g)",cal:120,p:4,c:12,f:5},
   {name:"Kheera Raita (Cucumber Raita)",cat:"Dairy",unit:"1 katori (150g)",cal:70,p:3,c:7,f:3},
   {name:"Aloo Raita (Potato Raita)",cat:"Dairy",unit:"1 katori (150g)",cal:110,p:4,c:15,f:3},
-  {name:"Mishti Doi (Bengali Sweet Curd)",cat:"Dairy",unit:"1 small pot (120g)",cal:160,p:5,c:25,f:4},
-  // More Indian Breads
-  {name:"Makki ki Roti (Corn Bread)",cat:"Indian",unit:"1 roti",cal:90,p:2,c:18,f:1.5},
-  {name:"Bajra Roti (Pearl Millet Bread)",cat:"Indian",unit:"1 roti",cal:85,p:3,c:16,f:1.5},
-  {name:"Jowar Roti (Sorghum Bread)",cat:"Indian",unit:"1 roti",cal:80,p:2.5,c:17,f:1},
-  {name:"Missi Roti (Gram Flour Bread)",cat:"Indian",unit:"1 roti",cal:120,p:5,c:18,f:3},
-  {name:"Thepla (Methi Flatbread)",cat:"Indian",unit:"1 thepla",cal:110,p:3,c:16,f:4},
-  {name:"Sattu Paratha (Roasted Gram Paratha)",cat:"Indian",unit:"1 paratha",cal:280,p:9,c:40,f:9},
-  // More Dal Varieties
-  {name:"Sabut Masoor Dal (Whole Red Lentil)",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:20,f:3},
-  {name:"Dal Fry (Yellow Dal)",cat:"Indian",unit:"1 katori (150ml)",cal:155,p:9,c:18,f:5},
-  {name:"Dhuli Moong Dal (Yellow Split Moong)",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:8,c:16,f:1.5},
-  {name:"Panchmel Dal (Five Lentil Mix)",cat:"Indian",unit:"1 katori (150ml)",cal:160,p:10,c:20,f:4},
-  {name:"Chana Dal with Lauki",cat:"Indian",unit:"1 katori (150ml)",cal:140,p:8,c:18,f:3},
-  // More Indian Dishes
-  {name:"Sabudana Khichdi (Tapioca Khichdi)",cat:"Indian",unit:"1 katori (150g)",cal:300,p:5,c:55,f:7},
-  {name:"Dalia (Broken Wheat Porridge)",cat:"Indian",unit:"1 katori (150g)",cal:150,p:5,c:28,f:2},
-  {name:"Chole Bhature",cat:"Indian",unit:"1 bhatura + chole",cal:450,p:12,c:65,f:14},
-  {name:"Dal Baati Churma",cat:"Indian",unit:"2 baati + dal",cal:480,p:12,c:65,f:16},
-  {name:"Litti Chokha",cat:"Indian",unit:"2 litti + chokha",cal:400,p:10,c:58,f:14},
-  {name:"Egg Curry",cat:"Indian",unit:"2 eggs in gravy",cal:220,p:14,c:8,f:14},
-  {name:"Keema (Minced Mutton Curry)",cat:"Indian",unit:"1 katori (150ml)",cal:260,p:22,c:6,f:16},
-  {name:"Sabudana Vada",cat:"Indian",unit:"2 pieces",cal:180,p:4,c:28,f:6},
-  {name:"Bread Upma",cat:"Indian",unit:"1 bowl",cal:220,p:5,c:35,f:7},
-  {name:"Dal Chawal (Dal + Rice)",cat:"Indian",unit:"1 plate",cal:345,p:13,c:60,f:4.5},
-  {name:"Rajma Chawal",cat:"Indian",unit:"1 plate",cal:365,p:14,c:64,f:3.5},
-  {name:"Kadhi Chawal (Kadhi + Rice)",cat:"Indian",unit:"1 plate",cal:350,p:10,c:58,f:9},
-  {name:"Puri Bhaji",cat:"Indian",unit:"2 puri + sabzi",cal:320,p:6,c:44,f:13},
-  {name:"Aloo Puri",cat:"Indian",unit:"2 puri + aloo",cal:340,p:6,c:48,f:13},
-  // Condiments & Sides
-  {name:"Papad (Roasted)",cat:"Snacks",unit:"1 papad",cal:35,p:2,c:5,f:1},
-  {name:"Papad (Fried)",cat:"Snacks",unit:"1 papad",cal:60,p:2,c:5,f:3.5},
-  {name:"Green Chutney (Mint/Coriander)",cat:"Snacks",unit:"2 tbsp",cal:15,p:0.5,c:2,f:0.3},
-  {name:"Imli Chutney (Tamarind Chutney)",cat:"Snacks",unit:"2 tbsp",cal:40,p:0.2,c:10,f:0.1},
-  {name:"Achar / Mixed Pickle",cat:"Snacks",unit:"1 tsp",cal:20,p:0,c:1,f:2},
-  {name:"Namkeen (Mixed Snack Mix)",cat:"Snacks",unit:"1 handful (30g)",cal:140,p:4,c:16,f:7},
-  {name:"Chivda (Flattened Rice Snack)",cat:"Snacks",unit:"1 handful (30g)",cal:120,p:3,c:18,f:4},
-  {name:"Shakarpara",cat:"Snacks",unit:"5 pieces",cal:120,p:2,c:18,f:5},
-  // Indian Drinks
+  {name:"Paneer",cat:"Dairy",unit:"100g",cal:265,p:18,c:2,f:20},
+  {name:"Sweet Lassi",cat:"Dairy",unit:"1 glass (250ml)",cal:200,p:6,c:30,f:6},
+  {name:"Chaas / Buttermilk",cat:"Dairy",unit:"1 glass (250ml)",cal:40,p:2,c:4,f:1},
+  {name:"Ghee",cat:"Dairy",unit:"1 tsp (5g)",cal:45,p:0,c:0,f:5},
+  {name:"Butter",cat:"Dairy",unit:"1 tsp (5g)",cal:35,p:0,c:0,f:4},
+  {name:"Cheese slice",cat:"Dairy",unit:"1 slice (20g)",cal:70,p:4,c:0.5,f:6},
+
+  // Drinks
+  {name:"Chai (with milk)",cat:"Drinks",unit:"1 cup (150ml)",cal:60,p:2,c:8,f:2},
+  {name:"Coffee (with milk)",cat:"Drinks",unit:"1 cup (150ml)",cal:50,p:2,c:6,f:2},
+  {name:"Black Tea / Coffee",cat:"Drinks",unit:"1 cup",cal:5,p:0,c:1,f:0},
+  {name:"Coconut Water",cat:"Drinks",unit:"1 glass (200ml)",cal:46,p:2,c:9,f:0.5},
+  {name:"Fresh Lime Soda / Nimbu Pani",cat:"Drinks",unit:"1 glass (200ml)",cal:35,p:0,c:9,f:0},
+  {name:"Orange Juice",cat:"Drinks",unit:"1 glass (200ml)",cal:90,p:1,c:21,f:0.2},
+  {name:"Mango Shake",cat:"Drinks",unit:"1 glass (300ml)",cal:230,p:5,c:40,f:6},
+  {name:"Cold Coffee",cat:"Drinks",unit:"1 glass (300ml)",cal:200,p:6,c:30,f:7},
+  {name:"Soft Drink (Coke / Pepsi)",cat:"Drinks",unit:"1 can (330ml)",cal:140,p:0,c:35,f:0},
   {name:"Rooh Afza Sharbat",cat:"Drinks",unit:"1 glass (200ml)",cal:90,p:0,c:22,f:0},
   {name:"Aam Panna (Raw Mango Drink)",cat:"Drinks",unit:"1 glass (200ml)",cal:60,p:0,c:15,f:0},
   {name:"Jaljeera",cat:"Drinks",unit:"1 glass (200ml)",cal:30,p:0,c:7,f:0},
   {name:"Sattu Drink (Chilled)",cat:"Drinks",unit:"1 glass (250ml)",cal:120,p:6,c:22,f:1},
   {name:"Thandai",cat:"Drinks",unit:"1 glass (250ml)",cal:180,p:5,c:28,f:6},
   {name:"Kanji (Fermented Mustard Drink)",cat:"Drinks",unit:"1 glass (200ml)",cal:40,p:1,c:8,f:0.5},
-  {name:"Nimbu Pani (Lemonade)",cat:"Drinks",unit:"1 glass (200ml)",cal:35,p:0,c:9,f:0},
+
+  // Fruits
+  {name:"Apple",cat:"Fruits",unit:"1 medium",cal:95,p:0.5,c:25,f:0.3},
+  {name:"Banana",cat:"Fruits",unit:"1 medium",cal:105,p:1,c:27,f:0.4},
+  {name:"Mango",cat:"Fruits",unit:"1 cup (165g)",cal:100,p:1,c:25,f:0.6},
+  {name:"Orange",cat:"Fruits",unit:"1 medium",cal:65,p:1,c:16,f:0.2},
+  {name:"Papaya",cat:"Fruits",unit:"1 cup (145g)",cal:55,p:1,c:14,f:0.2},
+  {name:"Watermelon",cat:"Fruits",unit:"1 slice (280g)",cal:85,p:2,c:21,f:0.4},
+  {name:"Grapes",cat:"Fruits",unit:"1 cup (150g)",cal:100,p:1,c:27,f:0.2},
+  {name:"Guava",cat:"Fruits",unit:"1 medium",cal:45,p:1.5,c:10,f:0.5},
+  {name:"Pomegranate",cat:"Fruits",unit:"1 cup seeds",cal:83,p:2,c:19,f:1},
+  {name:"Pineapple",cat:"Fruits",unit:"1 cup (165g)",cal:82,p:1,c:22,f:0.2},
+  {name:"Chikoo / Sapota",cat:"Fruits",unit:"1 medium",cal:80,p:0.5,c:20,f:0.5},
+
+  // Protein & Eggs
+  {name:"Boiled Egg",cat:"Protein",unit:"1 large",cal:78,p:6,c:0.6,f:5},
+  {name:"Fried Egg",cat:"Protein",unit:"1 large",cal:90,p:6,c:0.4,f:7},
+  {name:"Scrambled Eggs (plain)",cat:"Protein",unit:"2 eggs",cal:180,p:12,c:2,f:14},
+  {name:"Omelette (plain)",cat:"Protein",unit:"2 eggs",cal:160,p:12,c:1,f:12},
+  {name:"Chicken Breast (grilled)",cat:"Protein",unit:"100g",cal:165,p:31,c:0,f:3.6},
+  {name:"Chicken Tandoori",cat:"Protein",unit:"2 pieces (200g)",cal:280,p:32,c:4,f:14},
+  {name:"Grilled Fish",cat:"Protein",unit:"100g",cal:130,p:26,c:0,f:3},
+  {name:"Sprouts (mixed)",cat:"Protein",unit:"1 katori (100g)",cal:50,p:4,c:7,f:0.5},
+  {name:"Soya Chunks (cooked)",cat:"Protein",unit:"1 katori (100g)",cal:125,p:18,c:9,f:1},
+  {name:"Peanuts",cat:"Protein",unit:"1 handful (30g)",cal:170,p:7,c:5,f:14},
+  {name:"Almonds",cat:"Protein",unit:"10 pieces",cal:82,p:3,c:3,f:7},
+  {name:"Cashews",cat:"Protein",unit:"10 pieces",cal:80,p:2,c:5,f:6.5},
+  {name:"Peanut Butter",cat:"Protein",unit:"1 tbsp",cal:95,p:4,c:3,f:8},
+  {name:"Whey Protein Shake",cat:"Protein",unit:"1 scoop (30g)",cal:120,p:24,c:3,f:1.5},
+
+  // Western & Others
+  {name:"Oats (cooked)",cat:"Western",unit:"1 bowl (180g)",cal:155,p:5,c:27,f:3},
+  {name:"Bread (white)",cat:"Western",unit:"1 slice",cal:79,p:3,c:15,f:1},
+  {name:"Bread (brown/wheat)",cat:"Western",unit:"1 slice",cal:69,p:3,c:13,f:1},
+  {name:"Pasta (cooked)",cat:"Western",unit:"1 bowl (200g)",cal:250,p:9,c:48,f:2},
+  {name:"Pizza (regular)",cat:"Western",unit:"1 slice",cal:285,p:12,c:36,f:10},
+  {name:"Burger",cat:"Western",unit:"1 regular",cal:350,p:17,c:35,f:15},
+  {name:"French Fries",cat:"Western",unit:"medium serving",cal:340,p:4,c:44,f:16},
+  {name:"Caesar Salad",cat:"Western",unit:"1 bowl",cal:250,p:8,c:15,f:18},
+  {name:"Garden Salad",cat:"Western",unit:"1 bowl",cal:60,p:2,c:10,f:2},
+  {name:"Boiled Potato",cat:"Western",unit:"1 medium (150g)",cal:130,p:3,c:30,f:0.2},
+  {name:"Cornflakes with milk",cat:"Western",unit:"1 bowl",cal:200,p:5,c:38,f:3},
+  {name:"Muesli with milk",cat:"Western",unit:"1 bowl",cal:280,p:8,c:48,f:6},
 ];
 
-// Storage: use window.storage if available (app platform), else localStorage
+// ── Constants ──────────────────────────────────────────────
+const MEALS = {
+  breakfast: {label:'Breakfast', icon:'🌅', color:'var(--c-bf)'},
+  lunch:     {label:'Lunch',     icon:'☀️', color:'var(--c-lu)'},
+  dinner:    {label:'Dinner',    icon:'🌙', color:'var(--c-dn)'},
+  extra:     {label:'Snacks / Tea / Extra', icon:'🍵', color:'var(--c-ex)'},
+};
+const MEAL_KEYS = ['breakfast','lunch','dinner','extra'];
+
+// ── Storage ────────────────────────────────────────────────
 const storage = window.storage || {
   get: k => { const v = localStorage.getItem(k); return Promise.resolve(v !== null ? {value:v} : null); },
   set: (k, v) => { localStorage.setItem(k, v); return Promise.resolve(); }
 };
 
+// ── State ──────────────────────────────────────────────────
+let currentDate = todayStr();
+let addingToMeal = null;
 let selectedFood = null;
 
-function switchTab(tab) {
-  document.getElementById('panel-search').style.display = tab === 'search' ? 'block' : 'none';
-  document.getElementById('panel-manual').style.display = tab === 'manual' ? 'block' : 'none';
-  document.getElementById('t-search').className = 'tab' + (tab === 'search' ? ' active' : '');
-  document.getElementById('t-manual').className = 'tab' + (tab === 'manual' ? ' active' : '');
+// ── Helpers ────────────────────────────────────────────────
+function todayStr() { return new Date().toISOString().slice(0,10); }
+function timeNow()  { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
+function r1(n)      { return Math.round(n * 10) / 10; }
+function esc(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Day Navigation ─────────────────────────────────────────
+function changeDay(delta) {
+  const d = new Date(currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  const nd = d.toISOString().slice(0,10);
+  if (nd > todayStr()) return;
+  currentDate = nd;
+  updateDateUI();
+  renderAll();
 }
 
-// Search
-const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
-
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) {
-    searchResults.innerHTML = '<div class="empty-search">Type to search 200+ foods</div>';
-    return;
-  }
-  const matches = FOODS.filter(f => f.name.toLowerCase().includes(q)).slice(0, 8);
-  if (matches.length === 0) {
-    searchResults.innerHTML = '<div class="empty-search">No match — try Manual Entry</div>';
-    return;
-  }
-  searchResults.innerHTML = '';
-  matches.forEach(food => {
-    const div = document.createElement('div');
-    div.className = 'result-item';
-    div.innerHTML = `
-      <div>
-        <div class="rname">${esc(food.name)}<span class="tag">${food.cat}</span></div>
-        <div class="rmeta">${esc(food.unit)}</div>
-      </div>
-      <div class="rcal">${food.cal} kcal</div>`;
-    div.addEventListener('click', () => selectFood(food, div));
-    searchResults.appendChild(div);
-  });
-});
-
-function selectFood(food, el) {
-  searchResults.querySelectorAll('.result-item').forEach(d => d.classList.remove('active'));
-  el.classList.add('active');
-  selectedFood = food;
-  document.getElementById('selName').textContent = food.name;
-  document.getElementById('selMeta').textContent = `Per ${food.unit}: ${food.cal} kcal · P ${food.p}g · C ${food.c}g · F ${food.f}g`;
-  document.getElementById('selUnit').textContent = food.unit;
-  document.getElementById('qtyInput').value = 1;
-  updateSelTotal();
-  const panel = document.getElementById('selPanel');
-  panel.style.display = 'block';
-  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+function updateDateUI() {
+  const isToday = currentDate === todayStr();
+  const d = new Date(currentDate + 'T00:00:00');
+  document.getElementById('dateStr').textContent =
+    d.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
+  document.getElementById('todayBadge').style.visibility = isToday ? 'visible' : 'hidden';
+  document.getElementById('nextDay').disabled = isToday;
 }
 
-document.getElementById('qtyInput').addEventListener('input', updateSelTotal);
+// ── Storage Helpers ────────────────────────────────────────
+function dayKey(date) { return 'day:' + (date || currentDate); }
 
-function updateSelTotal() {
-  if (!selectedFood) return;
-  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
-  const cal = Math.round(selectedFood.cal * qty);
-  const p = round1(selectedFood.p * qty);
-  const c = round1(selectedFood.c * qty);
-  const f = round1(selectedFood.f * qty);
-  document.getElementById('selTotalCal').textContent = `${cal} kcal`;
-  document.getElementById('selTotalMac').textContent = `P ${p}g · C ${c}g · F ${f}g`;
+async function loadDay(date) {
+  try {
+    const r = await storage.get(dayKey(date || currentDate));
+    if (!r) return emptyDay();
+    const d = JSON.parse(r.value);
+    return {
+      breakfast: d.breakfast || [],
+      lunch:     d.lunch     || [],
+      dinner:    d.dinner    || [],
+      extra:     d.extra     || [],
+    };
+  } catch(e) { return emptyDay(); }
 }
 
-document.getElementById('addBtn').addEventListener('click', async () => {
-  if (!selectedFood) return;
-  const qty = parseFloat(document.getElementById('qtyInput').value) || 1;
-  const qtyStr = qty === 1 ? selectedFood.unit : `${qty} × ${selectedFood.unit}`;
-  const meal = {
-    name: selectedFood.name,
-    quantity: qtyStr,
-    calories: Math.round(selectedFood.cal * qty),
-    protein: round1(selectedFood.p * qty),
-    carbs: round1(selectedFood.c * qty),
-    fat: round1(selectedFood.f * qty),
-    time: timeNow()
-  };
-  await logMeal(meal);
-  // Reset search
-  searchInput.value = '';
-  searchResults.innerHTML = '<div class="empty-search">Type to search 200+ foods</div>';
-  document.getElementById('selPanel').style.display = 'none';
-  selectedFood = null;
-});
+function emptyDay() { return {breakfast:[],lunch:[],dinner:[],extra:[]}; }
 
-// Manual entry
-document.getElementById('manAddBtn').addEventListener('click', async () => {
-  const name = document.getElementById('manName').value.trim();
-  const cal = parseFloat(document.getElementById('manCal').value) || 0;
-  const p = parseFloat(document.getElementById('manP').value) || 0;
-  const c = parseFloat(document.getElementById('manC').value) || 0;
-  const f = parseFloat(document.getElementById('manF').value) || 0;
-  const errEl = document.getElementById('manErr');
-  if (!name) { errEl.textContent = 'Please enter a food name.'; errEl.style.display = 'block'; return; }
-  if (!cal) { errEl.textContent = 'Please enter calories.'; errEl.style.display = 'block'; return; }
-  errEl.style.display = 'none';
-  await logMeal({name, quantity:'custom', calories:Math.round(cal), protein:p, carbs:c, fat:f, time:timeNow()});
-  ['manName','manCal','manP','manC','manF'].forEach(id => document.getElementById(id).value = '');
-});
-
-async function logMeal(meal) {
-  let meals = await loadDay();
-  meals.push(meal);
-  await saveDay(meals);
-  await addToCommonMeals({...meal});
-  renderLog();
+async function saveDay(data, date) {
+  try { await storage.set(dayKey(date || currentDate), JSON.stringify(data)); }
+  catch(e) { console.error(e); }
 }
 
-// Storage helpers
-function todayKey() { return 'meals:' + new Date().toISOString().slice(0,10); }
-function timeNow() { return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
-function round1(n) { return Math.round(n * 10) / 10; }
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-async function loadDay() {
-  try { const r = await storage.get(todayKey()); return r ? JSON.parse(r.value) : []; }
-  catch(e) { return []; }
-}
-async function saveDay(meals) {
-  try { await storage.set(todayKey(), JSON.stringify(meals)); } catch(e) {}
-}
 async function loadCommonMeals() {
   try { const r = await storage.get('commonMeals'); return r ? JSON.parse(r.value) : []; }
   catch(e) { return []; }
@@ -521,88 +604,230 @@ async function loadCommonMeals() {
 async function saveCommonMeals(list) {
   try { await storage.set('commonMeals', JSON.stringify(list)); } catch(e) {}
 }
-async function addToCommonMeals(meal) {
+async function addToCommonMeals(item) {
   let list = await loadCommonMeals();
-  list = list.filter(m => !(m.name === meal.name && m.quantity === meal.quantity));
-  list.unshift(meal);
-  list = list.slice(0, 8);
+  list = list.filter(m => !(m.name === item.name && m.quantity === item.quantity));
+  list.unshift(item);
+  list = list.slice(0, 10);
   await saveCommonMeals(list);
   renderCommonMeals();
+}
+
+// ── Render ─────────────────────────────────────────────────
+async function renderAll() {
+  const data = await loadDay();
+  MEAL_KEYS.forEach(k => renderSection(k, data[k]));
+  const all = MEAL_KEYS.flatMap(k => data[k]);
+  const t = all.reduce((a,m) => ({
+    cal: a.cal + Number(m.calories||0),
+    p:   a.p   + Number(m.protein||0),
+    c:   a.c   + Number(m.carbs||0),
+    f:   a.f   + Number(m.fat||0),
+  }), {cal:0,p:0,c:0,f:0});
+  document.getElementById('totCal').textContent = Math.round(t.cal);
+  document.getElementById('totP').textContent   = Math.round(t.p) + 'g';
+  document.getElementById('totC').textContent   = Math.round(t.c) + 'g';
+  document.getElementById('totF').textContent   = Math.round(t.f) + 'g';
+}
+
+function renderSection(k, items) {
+  const el = document.getElementById('items-' + k);
+  const kcalEl = document.getElementById('kcal-' + k);
+  kcalEl.textContent = Math.round(items.reduce((a,m) => a + Number(m.calories||0), 0)) + ' kcal';
+  if (items.length === 0) { el.innerHTML = '<div class="m-empty">Nothing added yet</div>'; return; }
+  el.innerHTML = '';
+  items.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'm-item';
+    div.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div class="m-iname">${esc(item.name)}</div>
+        <div class="m-imeta">${item.time ? item.time + ' · ' : ''}${esc(item.quantity)} · P ${item.protein}g · C ${item.carbs}g · F ${item.fat}g</div>
+      </div>
+      <div style="display:flex;align-items:center;flex-shrink:0">
+        <div class="m-ical">${item.calories} kcal</div>
+        <button class="del" onclick="deleteItem('${k}',${idx})">✕</button>
+      </div>`;
+    el.appendChild(div);
+  });
 }
 
 async function renderCommonMeals() {
   const list = await loadCommonMeals();
   const el = document.getElementById('commonList');
-  if (list.length === 0) {
-    el.innerHTML = '<span class="empty" style="padding:4px 0; font-size:12px;">Meals you log will appear here</span>';
+  if (!list.length) {
+    el.innerHTML = '<span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span>';
     return;
   }
   el.innerHTML = '';
-  list.forEach(meal => {
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.textContent = `${meal.name} — ${meal.calories} kcal`;
-    chip.onclick = () => quickAddMeal(meal);
-    el.appendChild(chip);
+  list.forEach(item => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.textContent = `${item.name} — ${item.calories} kcal`;
+    c.onclick = () => quickAdd(item);
+    el.appendChild(c);
   });
 }
 
-async function quickAddMeal(meal) {
-  let meals = await loadDay();
-  meals.push({...meal, time: timeNow()});
-  await saveDay(meals);
-  renderLog();
-}
-
-async function renderLog() {
-  const meals = await loadDay();
-  const logEl = document.getElementById('mealLog');
-  if (meals.length === 0) {
-    logEl.innerHTML = '<div class="empty">No meals logged yet today</div>';
-  } else {
-    logEl.innerHTML = '';
-    meals.forEach((m, idx) => {
-      const item = document.createElement('div');
-      item.className = 'meal-item';
-      item.innerHTML = `
-        <div>
-          <div class="name">${esc(m.name)} <span style="color:var(--muted); font-weight:400;">· ${esc(m.quantity)}</span></div>
-          <div class="macros">${m.time || ''} · P ${m.protein}g · C ${m.carbs}g · F ${m.fat}g</div>
-        </div>
-        <div style="display:flex; align-items:center;">
-          <div class="cal">${m.calories} kcal</div>
-          <button class="del" onclick="deleteMeal(${idx})">✕</button>
-        </div>`;
-      logEl.appendChild(item);
-    });
-  }
-  const t = meals.reduce((a, m) => ({
-    cal: a.cal + Number(m.calories||0),
-    p: a.p + Number(m.protein||0),
-    c: a.c + Number(m.carbs||0),
-    f: a.f + Number(m.fat||0)
-  }), {cal:0,p:0,c:0,f:0});
-  document.getElementById('totCal').textContent = Math.round(t.cal);
-  document.getElementById('totP').textContent = Math.round(t.p) + 'g';
-  document.getElementById('totC').textContent = Math.round(t.c) + 'g';
-  document.getElementById('totF').textContent = Math.round(t.f) + 'g';
-}
-
-window.deleteMeal = async function(idx) {
-  let meals = await loadDay();
-  meals.splice(idx, 1);
-  await saveDay(meals);
-  renderLog();
+// ── Delete ─────────────────────────────────────────────────
+window.deleteItem = async function(k, idx) {
+  const data = await loadDay();
+  data[k].splice(idx, 1);
+  await saveDay(data);
+  renderAll();
 };
 
+// ── Quick Add ──────────────────────────────────────────────
+async function quickAdd(item) {
+  const target = addingToMeal || 'extra';
+  const data = await loadDay();
+  data[target].push({...item, time: timeNow()});
+  await saveDay(data);
+  renderAll();
+  if (addingToMeal) { closeAdd(); }
+  toast(`Added to ${MEALS[target].label}`);
+}
+
+// ── Drawer ─────────────────────────────────────────────────
+function openAdd(mealKey) {
+  addingToMeal = mealKey;
+  const m = MEALS[mealKey];
+  document.getElementById('drawerTitle').textContent = 'Add to ' + m.label;
+  document.getElementById('drawerDot').style.background = m.color;
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  // Reset state
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = '<div class="es">Search 260+ Indian &amp; global foods</div>';
+  document.getElementById('selPanel').style.display = 'none';
+  selectedFood = null;
+  switchTab('search');
+  document.getElementById('searchInput').focus();
+}
+
+function closeAdd() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+  addingToMeal = null;
+}
+
+// ── Tab Switch ─────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('panel-search').style.display = tab === 'search' ? 'block' : 'none';
+  document.getElementById('panel-manual').style.display = tab === 'manual' ? 'block' : 'none';
+  document.getElementById('t-search').className = 'tab' + (tab === 'search' ? ' active' : '');
+  document.getElementById('t-manual').className = 'tab' + (tab === 'manual' ? ' active' : '');
+}
+
+// ── Search ─────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input', () => {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const el = document.getElementById('searchResults');
+  if (!q) { el.innerHTML = '<div class="es">Search 260+ Indian &amp; global foods</div>'; return; }
+  const hits = FOODS.filter(f => f.name.toLowerCase().includes(q)).slice(0, 10);
+  if (!hits.length) { el.innerHTML = '<div class="es">No match — try Manual tab</div>'; return; }
+  el.innerHTML = '';
+  hits.forEach(food => {
+    const div = document.createElement('div');
+    div.className = 'ri';
+    div.innerHTML = `
+      <div>
+        <div class="rname">${esc(food.name)}<span class="tag">${food.cat}</span></div>
+        <div class="rmeta">${esc(food.unit)}</div>
+      </div>
+      <div class="rcal">${food.cal} kcal</div>`;
+    div.addEventListener('click', () => selectFood(food, div));
+    el.appendChild(div);
+  });
+});
+
+function selectFood(food, el) {
+  document.getElementById('searchResults').querySelectorAll('.ri').forEach(d => d.classList.remove('sel'));
+  el.classList.add('sel');
+  selectedFood = food;
+  document.getElementById('selName').textContent = food.name;
+  document.getElementById('selMeta').textContent = `Per ${food.unit}: ${food.cal} kcal · P ${food.p}g · C ${food.c}g · F ${food.f}g`;
+  document.getElementById('selUnit').textContent = food.unit;
+  document.getElementById('qtyInput').value = 1;
+  updateSelTotal();
+  document.getElementById('selPanel').style.display = 'block';
+}
+
+document.getElementById('qtyInput').addEventListener('input', updateSelTotal);
+
+function updateSelTotal() {
+  if (!selectedFood) return;
+  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
+  document.getElementById('selTotalCal').textContent = `${Math.round(selectedFood.cal * qty)} kcal`;
+  document.getElementById('selTotalMac').textContent = `P ${r1(selectedFood.p*qty)}g · C ${r1(selectedFood.c*qty)}g · F ${r1(selectedFood.f*qty)}g`;
+}
+
+document.getElementById('addFoodBtn').addEventListener('click', async () => {
+  if (!selectedFood || !addingToMeal) return;
+  const qty = parseFloat(document.getElementById('qtyInput').value) || 1;
+  const item = {
+    name: selectedFood.name,
+    quantity: qty === 1 ? selectedFood.unit : `${qty} × ${selectedFood.unit}`,
+    calories: Math.round(selectedFood.cal * qty),
+    protein:  r1(selectedFood.p * qty),
+    carbs:    r1(selectedFood.c * qty),
+    fat:      r1(selectedFood.f * qty),
+    time: timeNow()
+  };
+  const data = await loadDay();
+  data[addingToMeal].push(item);
+  await saveDay(data);
+  await addToCommonMeals({...item});
+  renderAll();
+  toast(`Added to ${MEALS[addingToMeal].label}`);
+  closeAdd();
+});
+
+// ── Manual Entry ───────────────────────────────────────────
+document.getElementById('manAddBtn').addEventListener('click', async () => {
+  if (!addingToMeal) return;
+  const name = document.getElementById('manName').value.trim();
+  const cal  = parseFloat(document.getElementById('manCal').value) || 0;
+  const p    = parseFloat(document.getElementById('manP').value)   || 0;
+  const c    = parseFloat(document.getElementById('manC').value)   || 0;
+  const f    = parseFloat(document.getElementById('manF').value)   || 0;
+  const errEl = document.getElementById('manErr');
+  if (!name) { errEl.textContent = 'Enter a food name.'; errEl.style.display = 'block'; return; }
+  if (!cal)  { errEl.textContent = 'Enter calories.';    errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  const item = {name, quantity:'custom', calories:Math.round(cal), protein:p, carbs:c, fat:f, time:timeNow()};
+  const data = await loadDay();
+  data[addingToMeal].push(item);
+  await saveDay(data);
+  await addToCommonMeals({...item});
+  renderAll();
+  toast(`Added to ${MEALS[addingToMeal].label}`);
+  ['manName','manCal','manP','manC','manF'].forEach(id => document.getElementById(id).value = '');
+  closeAdd();
+});
+
+// ── Reset ──────────────────────────────────────────────────
 document.getElementById('resetDayBtn').addEventListener('click', async () => {
-  if (confirm('Clear today\'s log? (common meals are kept)')) {
-    await saveDay([]);
-    renderLog();
+  if (currentDate !== todayStr()) { toast("Can't clear a past day"); return; }
+  if (confirm('Clear all meals for today?')) {
+    await saveDay(emptyDay());
+    renderAll();
   }
 });
 
-renderLog();
+// ── Toast ──────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── Init ───────────────────────────────────────────────────
+updateDateUI();
+renderAll();
 renderCommonMeals();
 </script>
 </body>
