@@ -2,8 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Calorie Tracker</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#5fb878">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Calories">
+<link rel="apple-touch-icon" href="./icon.svg">
 <style>
   :root{
     --bg:#0f1115; --card:#1a1d24; --accent:#5fb878; --accent2:#e8a33d;
@@ -261,6 +268,35 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- PWA Install Banner -->
+<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1d24;border-top:2px solid #5fb878;padding:14px 16px 20px;z-index:300;max-width:480px;margin:0 auto;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="./icon.svg" style="width:42px;height:42px;border-radius:10px;flex-shrink:0;" alt="">
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;">Install Calorie Tracker</div>
+      <div style="font-size:12px;color:#8b8f99;margin-top:2px;">Add to home screen · works offline</div>
+    </div>
+    <button onclick="installApp()" style="background:#5fb878;color:#0f1115;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
+    <button onclick="dismissInstall()" style="background:none;border:none;color:#8b8f99;font-size:22px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;">×</button>
+  </div>
+</div>
+
+<!-- iOS install instructions (shown only on iOS Safari) -->
+<div id="iosBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1d24;border-top:2px solid #e8a33d;padding:14px 16px 22px;z-index:300;max-width:480px;margin:0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="font-size:24px;flex-shrink:0;">📲</div>
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Install on iPhone / iPad</div>
+      <div style="font-size:12px;color:#8b8f99;line-height:1.6;">
+        1. Tap the <strong style="color:#e8a33d;">Share</strong> button (⎙) at the bottom of Safari<br>
+        2. Tap <strong style="color:#e8a33d;">"Add to Home Screen"</strong><br>
+        3. Tap <strong style="color:#e8a33d;">Add</strong> — done!
+      </div>
+    </div>
+    <button onclick="document.getElementById('iosBanner').style.display='none'" style="background:none;border:none;color:#8b8f99;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">×</button>
+  </div>
+</div>
 
 <script>
 const FOODS = [
@@ -860,6 +896,52 @@ function toast(msg) {
 updateDateUI();
 renderAll();
 renderCommonMeals();
+
+// ── PWA: Service Worker & Install Prompt ───────────────────
+let deferredInstallPrompt = null;
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
+  });
+}
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!sessionStorage.getItem('installDismissed')) {
+    setTimeout(() => { document.getElementById('installBanner').style.display = 'block'; }, 2000);
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+  deferredInstallPrompt = null;
+  toast('App installed! Open from home screen.');
+});
+
+async function installApp() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome === 'accepted') deferredInstallPrompt = null;
+  document.getElementById('installBanner').style.display = 'none';
+}
+
+function dismissInstall() {
+  document.getElementById('installBanner').style.display = 'none';
+  sessionStorage.setItem('installDismissed', '1');
+}
+
+// Show iOS instructions on Safari/iPhone (no beforeinstallprompt support)
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+if (isIOS && !isInStandalone && !sessionStorage.getItem('iosHintDismissed')) {
+  setTimeout(() => { document.getElementById('iosBanner').style.display = 'block'; }, 2000);
+}
+document.getElementById('iosBanner').querySelector('button').addEventListener('click', () => {
+  sessionStorage.setItem('iosHintDismissed', '1');
+});
 </script>
 </body>
 </html>
