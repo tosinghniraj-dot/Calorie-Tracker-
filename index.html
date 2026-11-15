@@ -183,7 +183,7 @@ input[type=time]{color-scheme:dark;}
 <div class="app-header">
   <div>
     <h1>🍽️ Calorie Tracker</h1>
-    <div class="sub">Day-wise meal log · Breakfast · Lunch · Dinner · Snacks</div>
+    <div class="sub">Day-wise meal log · Breakfast · Lunch · Dinner · Snacks &nbsp;<span style="color:var(--accent);font-weight:700;">v2.0</span></div>
   </div>
   <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
     <span id="profileName">Me</span> ▾
@@ -371,6 +371,12 @@ input[type=time]{color-scheme:dark;}
       <button class="btn-s" onclick="exportCSV(30)">Export Last 30 Days</button>
       <button class="btn-s" onclick="exportCSV(365)">Export All Data (up to 1 year)</button>
       <div style="font-size:11px;color:var(--muted);margin-top:8px;">Opens in Excel or Google Sheets with all meal details.</div>
+    </div>
+
+    <div style="text-align:center;padding:8px 0 4px;color:var(--muted);font-size:11px;line-height:1.6;">
+      <div style="font-weight:700;color:var(--text);font-size:12px;">Calorie Tracker <span style="color:var(--accent);">v2.0</span></div>
+      <div>Updated: 15 Nov 2025</div>
+      <div style="margin-top:2px;">260+ Indian &amp; global foods · PWA · Offline ready</div>
     </div>
   </div>
 </div>
