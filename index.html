@@ -11,214 +11,379 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Calories">
 <link rel="apple-touch-icon" href="./icon.svg">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
 <style>
-  :root{
-    --bg:#0f1115; --card:#1a1d24; --accent:#5fb878; --accent2:#e8a33d;
-    --text:#e8e8ea; --muted:#8b8f99; --danger:#e05c5c; --border:#2a2e38;
-    --c-bf:#e8a33d; --c-lu:#5fb878; --c-dn:#7b8ef7; --c-ex:#e06cb8;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding-bottom:50px;}
-  .app{max-width:480px;margin:0 auto;padding:16px;}
-  h1{font-size:20px;font-weight:700;margin:8px 0 4px;}
-  .sub{color:var(--muted);font-size:13px;margin-bottom:16px;}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;}
-
-  /* Day Navigation */
-  .day-nav{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 4px;margin-bottom:12px;gap:4px;}
-  .nav-btn{background:none;border:none;color:var(--text);font-size:26px;cursor:pointer;padding:0 10px;line-height:1;flex-shrink:0;}
-  .nav-btn:disabled{color:var(--border);cursor:default;}
-  .date-center{flex:1;text-align:center;}
-  .date-str{font-size:14px;font-weight:600;}
-  .today-badge{font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.06em;margin-top:1px;}
-  .date-center{cursor:pointer;user-select:none;}
-  .date-center:hover .date-str{color:var(--accent);}
-  #datePicker{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
-  .save-dot{display:inline-block;width:7px;height:7px;background:var(--accent);border-radius:50%;margin-left:6px;opacity:0;transition:opacity .3s;vertical-align:middle;}
-  .save-dot.show{opacity:1;}
-
-  /* Totals */
-  .totals{display:flex;justify-content:space-between;gap:8px;}
-  .stat{text-align:center;flex:1;}
-  .stat .v{font-size:20px;font-weight:700;}
-  .stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
-  .stat.cal .v{color:var(--accent2);}
-
-  /* Meal Sections */
-  .meal-sec{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;}
-  .meal-sec.bf{border-left:3px solid var(--c-bf);}
-  .meal-sec.lu{border-left:3px solid var(--c-lu);}
-  .meal-sec.dn{border-left:3px solid var(--c-dn);}
-  .meal-sec.ex{border-left:3px solid var(--c-ex);}
-  .meal-head{display:flex;align-items:center;padding:11px 14px;gap:8px;}
-  .meal-icon{font-size:17px;line-height:1;flex-shrink:0;}
-  .meal-title{font-size:14px;font-weight:700;flex:1;}
-  .meal-kcal{font-size:12px;color:var(--muted);white-space:nowrap;}
-  .add-btn{background:var(--accent);color:#0f1115;border:none;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-  .meal-items{padding:0 14px 10px;}
-  .m-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);gap:8px;}
-  .m-item:last-child{border-bottom:none;}
-  .m-iname{font-size:13px;font-weight:600;}
-  .m-imeta{font-size:11px;color:var(--muted);margin-top:2px;}
-  .m-ical{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
-  .del{background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;padding:2px 0 0 6px;line-height:1;}
-  .m-empty{color:var(--muted);font-size:12px;padding:4px 0 2px;text-align:center;}
-
-  /* Bottom Drawer */
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99;display:none;}
-  .overlay.open{display:block;}
-  .drawer{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--card);border-radius:20px 20px 0 0;z-index:100;max-height:88vh;overflow-y:auto;display:none;}
-  .drawer.open{display:block;}
-  .drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
-  .drawer-head{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:10px;}
-  .drawer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-  .drawer-title{font-size:15px;font-weight:700;flex:1;}
-  .drawer-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;line-height:1;}
-  .drawer-body{padding:14px 16px 28px;}
-
-  /* Tabs */
-  .tabs{display:flex;gap:8px;margin-bottom:14px;}
-  .tab{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:13px;cursor:pointer;background:#11131a;border:1px solid var(--border);color:var(--muted);}
-  .tab.active{background:var(--accent);color:#0f1115;font-weight:700;border-color:var(--accent);}
-
-  /* Inputs */
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;margin-top:12px;}
-  input[type=text],input[type=search],input[type=number]{
-    width:100%;background:#11131a;border:1px solid var(--border);border-radius:8px;
-    color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;
-    -moz-appearance:textfield;outline:none;
-  }
-  input[type=text]:focus,input[type=search]:focus,input[type=number]:focus{border-color:var(--accent);}
-  input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;}
-  input[type=search]::-webkit-search-cancel-button{display:none;}
-  .btn-p{background:var(--accent);color:#0f1115;border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:14px;}
-  .btn-s{background:#2a2e38;color:var(--text);border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:12px;}
-
-  /* Search results */
-  .results{margin-top:10px;max-height:210px;overflow-y:auto;}
-  .ri{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-  .ri:hover,.ri.sel{background:#11131a;}
-  .rname{font-size:14px;font-weight:600;}
-  .rmeta{font-size:11px;color:var(--muted);margin-top:1px;}
-  .rcal{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
-  .tag{display:inline-block;background:#22262f;border-radius:4px;padding:1px 6px;font-size:10px;color:var(--muted);margin-left:6px;vertical-align:middle;}
-  .es{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;}
-
-  /* Selected food */
-  .divider{height:1px;background:var(--border);margin:14px 0;}
-  .sel-name{font-size:15px;font-weight:700;margin-bottom:2px;}
-  .sel-meta{font-size:12px;color:var(--muted);}
-  .qty-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
-  .ql{font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
-  .qty-row input{width:80px;flex-shrink:0;}
-  .qty-unit{font-size:13px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .sel-total{background:#11131a;border-radius:8px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;font-size:13px;}
-  .tcal{font-weight:700;color:var(--accent2);}
-  .tmac{color:var(--muted);}
-
-  /* Manual grid */
-  .macro-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
-  .macro-grid>div label{margin-top:0;}
-
-  /* Quick add chips */
-  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
-  .chip{background:#11131a;border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--text);}
-  .chip:active{background:#22262f;}
-
-  .empty{color:var(--muted);font-size:13px;text-align:center;padding:10px 0;}
-  .err{color:var(--danger);font-size:13px;margin-top:8px;}
-
-  /* Toast */
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#2a2e38;color:var(--text);padding:9px 20px;border-radius:20px;font-size:13px;z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;border:1px solid var(--border);}
-  .toast.show{opacity:1;}
+:root{--bg:#0f1115;--card:#1a1d24;--accent:#5fb878;--accent2:#e8a33d;--text:#e8e8ea;--muted:#8b8f99;--danger:#e05c5c;--border:#2a2e38;--c-bf:#e8a33d;--c-lu:#5fb878;--c-dn:#7b8ef7;--c-ex:#e06cb8;--nav-h:60px;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);padding-bottom:calc(var(--nav-h) + 16px);}
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;max-width:480px;margin:0 auto;}
+.app-header h1{font-size:19px;font-weight:700;margin:0;}
+.app-header .sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.profile-pill{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;user-select:none;}
+.profile-pill:active{border-color:var(--accent);}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+.app{max-width:480px;margin:0 auto;padding:0 16px 16px;}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);background:#13161c;border-top:1px solid var(--border);display:flex;z-index:150;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:4px 0;transition:color .15s;position:relative;}
+.bnav-btn .bicon{font-size:20px;line-height:1;}
+.bnav-btn.active{color:var(--accent);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:12px;}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;}
+.day-nav{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px 4px;margin-bottom:12px;gap:4px;}
+.nav-btn{background:none;border:none;color:var(--text);font-size:26px;cursor:pointer;padding:0 10px;line-height:1;flex-shrink:0;}
+.nav-btn:disabled{color:var(--border);cursor:default;}
+.date-center{flex:1;text-align:center;cursor:pointer;user-select:none;}
+.date-center:hover .date-str{color:var(--accent);}
+.date-str{font-size:14px;font-weight:600;}
+.today-badge{font-size:10px;color:var(--accent);font-weight:700;letter-spacing:.06em;margin-top:1px;}
+#datePicker{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+.save-dot{display:inline-block;width:7px;height:7px;background:var(--accent);border-radius:50%;margin-left:6px;opacity:0;transition:opacity .3s;vertical-align:middle;}
+.save-dot.show{opacity:1;}
+.totals{display:flex;justify-content:space-between;gap:8px;}
+.stat{text-align:center;flex:1;}
+.stat .v{font-size:20px;font-weight:700;}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+.stat.cal .v{color:var(--accent2);}
+.goal-bars{margin-top:10px;}
+.goal-row{margin-bottom:7px;}
+.goal-label-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px;}
+.pbar{height:5px;background:#22262f;border-radius:3px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:3px;transition:width .4s ease;}
+.pbar-fill.cal{background:var(--accent2);}
+.pbar-fill.pro{background:#7b8ef7;}
+.pbar-fill.crb{background:var(--accent);}
+.pbar-fill.fat{background:var(--c-ex);}
+.pbar-fill.over{background:var(--danger)!important;}
+.water-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.water-label{font-size:12px;color:var(--muted);flex-shrink:0;}
+.water-glasses{display:flex;gap:4px;flex:1;}
+.wg{font-size:17px;cursor:pointer;user-select:none;line-height:1;opacity:.3;transition:opacity .15s,transform .1s;}
+.wg.filled{opacity:1;}
+.wg:active{transform:scale(.8);}
+.water-count{font-size:12px;color:var(--accent);font-weight:700;white-space:nowrap;flex-shrink:0;}
+.meal-sec{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;}
+.meal-sec.bf{border-left:3px solid var(--c-bf);}
+.meal-sec.lu{border-left:3px solid var(--c-lu);}
+.meal-sec.dn{border-left:3px solid var(--c-dn);}
+.meal-sec.ex{border-left:3px solid var(--c-ex);}
+.meal-head{display:flex;align-items:center;padding:11px 14px;gap:8px;}
+.meal-icon{font-size:17px;line-height:1;flex-shrink:0;}
+.meal-title{font-size:14px;font-weight:700;flex:1;}
+.meal-kcal{font-size:12px;color:var(--muted);white-space:nowrap;}
+.add-btn{background:var(--accent);color:#0f1115;border:none;border-radius:6px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.meal-items{padding:0 14px 10px;}
+.m-item{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);gap:8px;}
+.m-item:last-child{border-bottom:none;}
+.m-iname{font-size:13px;font-weight:600;}
+.m-imeta{font-size:11px;color:var(--muted);margin-top:2px;}
+.m-ical{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
+.del{background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;padding:2px 0 0 6px;line-height:1;}
+.m-empty{color:var(--muted);font-size:12px;padding:4px 0 2px;text-align:center;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;}
+.overlay.open{display:block;}
+.drawer{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--card);border-radius:20px 20px 0 0;z-index:201;max-height:88vh;overflow-y:auto;display:none;}
+.drawer.open{display:block;}
+.drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.drawer-head{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:10px;}
+.drawer-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.drawer-title{font-size:15px;font-weight:700;flex:1;}
+.drawer-close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;line-height:1;}
+.drawer-body{padding:14px 16px 28px;}
+.tabs{display:flex;gap:8px;margin-bottom:14px;}
+.tab{flex:1;text-align:center;padding:8px;border-radius:8px;font-size:13px;cursor:pointer;background:#11131a;border:1px solid var(--border);color:var(--muted);}
+.tab.active{background:var(--accent);color:#0f1115;font-weight:700;border-color:var(--accent);}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px;margin-top:12px;}
+input[type=text],input[type=search],input[type=number],input[type=time]{width:100%;background:#11131a;border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;-moz-appearance:textfield;outline:none;}
+input[type=text]:focus,input[type=search]:focus,input[type=number]:focus,input[type=time]:focus{border-color:var(--accent);}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;}
+input[type=search]::-webkit-search-cancel-button{display:none;}
+input[type=time]{color-scheme:dark;}
+.btn-p{background:var(--accent);color:#0f1115;border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:14px;}
+.btn-s{background:#2a2e38;color:var(--text);border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;}
+.btn-sm{background:#2a2e38;color:var(--text);border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;}
+.results{margin-top:10px;max-height:210px;overflow-y:auto;}
+.ri{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.ri:hover,.ri.sel{background:#11131a;}
+.rname{font-size:14px;font-weight:600;}
+.rmeta{font-size:11px;color:var(--muted);margin-top:1px;}
+.rcal{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
+.tag{display:inline-block;background:#22262f;border-radius:4px;padding:1px 6px;font-size:10px;color:var(--muted);margin-left:6px;vertical-align:middle;}
+.es{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;}
+.divider{height:1px;background:var(--border);margin:14px 0;}
+.sel-name{font-size:15px;font-weight:700;margin-bottom:2px;}
+.sel-meta{font-size:12px;color:var(--muted);}
+.qty-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
+.ql{font-size:13px;color:var(--muted);white-space:nowrap;flex-shrink:0;}
+.qty-row input{width:80px;flex-shrink:0;}
+.qty-unit{font-size:13px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sel-total{background:#11131a;border-radius:8px;padding:10px 12px;margin-top:10px;display:flex;justify-content:space-between;font-size:13px;}
+.tcal{font-weight:700;color:var(--accent2);}
+.tmac{color:var(--muted);}
+.macro-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.macro-grid>div label{margin-top:0;}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.chip{background:#11131a;border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--text);}
+.chip:active{background:#22262f;}
+.empty{color:var(--muted);font-size:13px;text-align:center;padding:10px 0;}
+.err{color:var(--danger);font-size:13px;margin-top:8px;}
+.period-toggle{display:flex;gap:8px;margin-bottom:14px;}
+.period-btn{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:13px;cursor:pointer;background:#11131a;border:1px solid var(--border);color:var(--muted);}
+.period-btn.active{background:var(--accent);color:#0f1115;font-weight:700;border-color:var(--accent);}
+.chart-wrap{position:relative;height:200px;margin-bottom:4px;}
+.hist-table{width:100%;border-collapse:collapse;font-size:13px;}
+.hist-table th{color:var(--muted);font-weight:600;text-align:left;padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;}
+.hist-table td{padding:8px 6px;border-bottom:1px solid var(--border);}
+.hist-table tr:last-child td{border-bottom:none;}
+.hist-table .kcal-cell{font-weight:700;color:var(--accent2);}
+.hist-table .today-row td{background:#1f2330;}
+.water-big{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0;}
+.wg-big{font-size:30px;cursor:pointer;user-select:none;opacity:.25;transition:opacity .15s,transform .12s;}
+.wg-big.filled{opacity:1;}
+.wg-big:active{transform:scale(.82);}
+.water-info{font-size:15px;color:var(--accent);font-weight:700;margin-top:4px;}
+.water-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.water-btn-row{display:flex;gap:8px;margin-top:12px;}
+.weight-entry-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:14px;}
+.weight-entry-row>div:first-child{flex:1;}
+.weight-entry-row label{margin:0 0 4px;}
+.wh-table{width:100%;border-collapse:collapse;font-size:13px;}
+.wh-table td{padding:8px 6px;border-bottom:1px solid var(--border);}
+.wh-table tr:last-child td{border-bottom:none;}
+.wh-table td:nth-child(2){font-weight:700;}
+.wh-table td:last-child{text-align:right;}
+.weight-chart-wrap{position:relative;height:160px;margin-top:14px;}
+.goals-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.goals-grid>div label{margin-top:0;font-size:12px;}
+.profile-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+.p-chip{background:#11131a;border:1px solid var(--border);border-radius:20px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.p-chip.active{border-color:var(--accent);color:var(--accent);}
+.p-chip .dp{color:var(--danger);margin-left:2px;font-size:12px;line-height:1;}
+.add-profile-row{display:flex;gap:8px;align-items:flex-end;}
+.add-profile-row>div{flex:1;}
+.add-profile-row label{margin:0 0 4px;}
+.reminder-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.reminder-row>label{flex:1;font-size:13px;color:var(--text);margin:0;}
+.reminder-row input[type=time]{width:110px;flex-shrink:0;}
+.toggle-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.toggle-wrap>span{font-size:14px;font-weight:600;}
+.toggle{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.tslider{position:absolute;inset:0;background:#22262f;border-radius:13px;cursor:pointer;transition:.2s;}
+.tslider:before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.2s;}
+.toggle input:checked+.tslider{background:var(--accent);}
+.toggle input:checked+.tslider:before{transform:translateX(20px);background:#0f1115;}
+.notif-status{font-size:12px;color:var(--muted);margin-top:8px;min-height:16px;}
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%);background:#2a2e38;color:var(--text);padding:9px 20px;border-radius:20px;font-size:13px;z-index:300;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;border:1px solid var(--border);}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
-<div class="app">
-  <h1>🍽️ Calorie Tracker</h1>
-  <div class="sub">Day-wise meal log · Breakfast · Lunch · Dinner · Snacks</div>
 
-  <!-- Day Navigation -->
-  <div class="day-nav" style="position:relative">
-    <button class="nav-btn" id="prevDay" onclick="changeDay(-1)">‹</button>
-    <div class="date-center" onclick="openDatePicker()" title="Tap to jump to any date">
-      <div class="date-str" id="dateStr">—</div>
-      <div class="today-badge" id="todayBadge">TODAY · tap to change date</div>
-      <input type="date" id="datePicker" onchange="jumpToDate(this.value)">
-    </div>
-    <button class="nav-btn" id="nextDay" onclick="changeDay(1)" disabled>›</button>
+<div class="app-header">
+  <div>
+    <h1>🍽️ Calorie Tracker</h1>
+    <div class="sub">Day-wise meal log · Breakfast · Lunch · Dinner · Snacks</div>
   </div>
-
-  <!-- Daily Totals -->
-  <div class="card">
-    <div class="totals">
-      <div class="stat cal"><div class="v" id="totCal">0</div><div class="l">kcal</div></div>
-      <div class="stat"><div class="v" id="totP">0g</div><div class="l">protein</div></div>
-      <div class="stat"><div class="v" id="totC">0g</div><div class="l">carbs</div></div>
-      <div class="stat"><div class="v" id="totF">0g</div><div class="l">fat</div></div>
-    </div>
-    <div style="text-align:right;margin-top:6px;font-size:11px;color:var(--muted);">
-      Auto-saved to browser<span class="save-dot" id="saveDot"></span>
-    </div>
+  <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
+    <span id="profileName">Me</span> ▾
   </div>
-
-  <!-- Meal Sections -->
-  <div class="meal-sec bf">
-    <div class="meal-head">
-      <span class="meal-icon">🌅</span>
-      <span class="meal-title">Breakfast</span>
-      <span class="meal-kcal" id="kcal-breakfast">0 kcal</span>
-      <button class="add-btn" onclick="openAdd('breakfast')">+ Add</button>
-    </div>
-    <div class="meal-items" id="items-breakfast"><div class="m-empty">Nothing added yet</div></div>
-  </div>
-
-  <div class="meal-sec lu">
-    <div class="meal-head">
-      <span class="meal-icon">☀️</span>
-      <span class="meal-title">Lunch</span>
-      <span class="meal-kcal" id="kcal-lunch">0 kcal</span>
-      <button class="add-btn" onclick="openAdd('lunch')">+ Add</button>
-    </div>
-    <div class="meal-items" id="items-lunch"><div class="m-empty">Nothing added yet</div></div>
-  </div>
-
-  <div class="meal-sec dn">
-    <div class="meal-head">
-      <span class="meal-icon">🌙</span>
-      <span class="meal-title">Dinner</span>
-      <span class="meal-kcal" id="kcal-dinner">0 kcal</span>
-      <button class="add-btn" onclick="openAdd('dinner')">+ Add</button>
-    </div>
-    <div class="meal-items" id="items-dinner"><div class="m-empty">Nothing added yet</div></div>
-  </div>
-
-  <div class="meal-sec ex">
-    <div class="meal-head">
-      <span class="meal-icon">🍵</span>
-      <span class="meal-title">Snacks / Tea / Extra</span>
-      <span class="meal-kcal" id="kcal-extra">0 kcal</span>
-      <button class="add-btn" onclick="openAdd('extra')">+ Add</button>
-    </div>
-    <div class="meal-items" id="items-extra"><div class="m-empty">Nothing added yet</div></div>
-  </div>
-
-  <!-- Quick Add -->
-  <div class="card">
-    <label style="margin-top:0">Quick add — recent items</label>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Opens + Add panel, or taps add directly to Snacks/Extra</div>
-    <div id="commonList" class="chips">
-      <span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span>
-    </div>
-  </div>
-
-  <button class="btn-s" id="resetDayBtn">Clear Today's Log</button>
 </div>
 
-<!-- Overlay -->
-<div class="overlay" id="overlay" onclick="closeAdd()"></div>
+<!-- TODAY TAB -->
+<div id="tab-today" class="tab-pane active">
+  <div class="app">
+    <div class="day-nav" style="position:relative">
+      <button class="nav-btn" id="prevDay" onclick="changeDay(-1)">‹</button>
+      <div class="date-center" onclick="openDatePicker()" title="Tap to jump to any date">
+        <div class="date-str" id="dateStr">—</div>
+        <div class="today-badge" id="todayBadge">TODAY · tap to change date</div>
+        <input type="date" id="datePicker" onchange="jumpToDate(this.value)">
+      </div>
+      <button class="nav-btn" id="nextDay" onclick="changeDay(1)" disabled>›</button>
+    </div>
 
-<!-- Bottom Drawer -->
+    <div class="card">
+      <div class="totals">
+        <div class="stat cal"><div class="v" id="totCal">0</div><div class="l">kcal</div></div>
+        <div class="stat"><div class="v" id="totP">0g</div><div class="l">protein</div></div>
+        <div class="stat"><div class="v" id="totC">0g</div><div class="l">carbs</div></div>
+        <div class="stat"><div class="v" id="totF">0g</div><div class="l">fat</div></div>
+      </div>
+      <div class="goal-bars" id="goalBars"></div>
+      <div class="water-row">
+        <span class="water-label">💧 Water</span>
+        <div class="water-glasses" id="waterGlassesSmall"></div>
+        <span class="water-count" id="waterCountSmall">0/8</span>
+      </div>
+      <div style="text-align:right;margin-top:6px;font-size:11px;color:var(--muted);">
+        Auto-saved to browser<span class="save-dot" id="saveDot"></span>
+      </div>
+    </div>
+
+    <div class="meal-sec bf">
+      <div class="meal-head">
+        <span class="meal-icon">🌅</span>
+        <span class="meal-title">Breakfast</span>
+        <span class="meal-kcal" id="kcal-breakfast">0 kcal</span>
+        <button class="add-btn" onclick="openAdd('breakfast')">+ Add</button>
+      </div>
+      <div class="meal-items" id="items-breakfast"><div class="m-empty">Nothing added yet</div></div>
+    </div>
+
+    <div class="meal-sec lu">
+      <div class="meal-head">
+        <span class="meal-icon">☀️</span>
+        <span class="meal-title">Lunch</span>
+        <span class="meal-kcal" id="kcal-lunch">0 kcal</span>
+        <button class="add-btn" onclick="openAdd('lunch')">+ Add</button>
+      </div>
+      <div class="meal-items" id="items-lunch"><div class="m-empty">Nothing added yet</div></div>
+    </div>
+
+    <div class="meal-sec dn">
+      <div class="meal-head">
+        <span class="meal-icon">🌙</span>
+        <span class="meal-title">Dinner</span>
+        <span class="meal-kcal" id="kcal-dinner">0 kcal</span>
+        <button class="add-btn" onclick="openAdd('dinner')">+ Add</button>
+      </div>
+      <div class="meal-items" id="items-dinner"><div class="m-empty">Nothing added yet</div></div>
+    </div>
+
+    <div class="meal-sec ex">
+      <div class="meal-head">
+        <span class="meal-icon">🍵</span>
+        <span class="meal-title">Snacks / Tea / Extra</span>
+        <span class="meal-kcal" id="kcal-extra">0 kcal</span>
+        <button class="add-btn" onclick="openAdd('extra')">+ Add</button>
+      </div>
+      <div class="meal-items" id="items-extra"><div class="m-empty">Nothing added yet</div></div>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">Quick add — recent items</label>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Opens + Add panel, or taps add directly to Snacks/Extra</div>
+      <div id="commonList" class="chips">
+        <span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span>
+      </div>
+    </div>
+    <button class="btn-s" id="resetDayBtn">Clear Today's Log</button>
+  </div>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" class="tab-pane">
+  <div class="app">
+    <div class="period-toggle">
+      <div class="period-btn active" id="period-7" onclick="setPeriod(7)">Last 7 Days</div>
+      <div class="period-btn" id="period-30" onclick="setPeriod(30)">Last 30 Days</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Calorie Trend</div>
+      <div class="chart-wrap"><canvas id="histChart"></canvas></div>
+    </div>
+    <div class="card" style="overflow-x:auto;">
+      <div class="card-title">Daily Summary</div>
+      <table class="hist-table">
+        <thead><tr><th>Date</th><th>kcal</th><th>Protein</th><th>Carbs</th><th>Fat</th></tr></thead>
+        <tbody id="histTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- BODY TAB -->
+<div id="tab-body" class="tab-pane">
+  <div class="app">
+    <div class="card">
+      <div class="card-title">💧 Water — Today</div>
+      <div class="water-big" id="waterGlassesBig"></div>
+      <div class="water-info" id="waterInfo">0 glasses · 0 ml</div>
+      <div class="water-sub">Tap a glass to log. Each glass = 250 ml. Goal: 8 glasses = 2 litres.</div>
+      <div class="water-btn-row">
+        <button class="btn-sm" style="flex:1" onclick="addWater()">+ 1 Glass</button>
+        <button class="btn-sm" style="flex:1" onclick="removeWater()">− Remove</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ Weight Log</div>
+      <div class="weight-entry-row">
+        <div>
+          <label>Today's weight (kg)</label>
+          <input type="number" id="weightInput" placeholder="e.g. 72.5" min="20" max="300" step="0.1">
+        </div>
+        <button class="btn-sm" onclick="saveWeight()" style="padding:11px 16px;">Save</button>
+      </div>
+      <div class="card-title" style="margin-top:4px;">Recent Entries</div>
+      <table class="wh-table" id="weightHistTable">
+        <tbody id="weightHistBody"><tr><td colspan="3" style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0;">No entries yet</td></tr></tbody>
+      </table>
+      <div class="weight-chart-wrap" id="weightChartWrap" style="display:none;">
+        <canvas id="weightChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="tab-settings" class="tab-pane">
+  <div class="app">
+    <div class="card">
+      <div class="card-title">📊 Daily Goals</div>
+      <div class="goals-grid">
+        <div><label>Calories (kcal)</label><input type="number" id="goalCal" placeholder="e.g. 2000" min="500" max="6000"></div>
+        <div><label>Protein (g)</label><input type="number" id="goalP" placeholder="e.g. 60" min="0" max="400"></div>
+        <div><label>Carbs (g)</label><input type="number" id="goalC" placeholder="e.g. 250" min="0" max="600"></div>
+        <div><label>Fat (g)</label><input type="number" id="goalF" placeholder="e.g. 70" min="0" max="300"></div>
+      </div>
+      <button class="btn-p" onclick="saveGoals()">Save Goals</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👥 Profiles (Family Members)</div>
+      <div class="profile-list" id="profileList"></div>
+      <div class="add-profile-row">
+        <div><label>New profile name</label><input type="text" id="newProfileName" placeholder="e.g. Wife, Son..."></div>
+        <button class="btn-sm" onclick="addProfile()" style="margin-top:20px;padding:10px 16px;">Add</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;">Each profile has its own meal log, goals &amp; water tracking.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔔 Meal Reminders</div>
+      <div class="toggle-wrap">
+        <span>Enable reminders</span>
+        <label class="toggle"><input type="checkbox" id="notifToggle" onchange="toggleNotifications()"><span class="tslider"></span></label>
+      </div>
+      <div id="reminderTimes">
+        <div class="reminder-row"><label>🌅 Breakfast</label><input type="time" id="remBreakfast" value="08:00"></div>
+        <div class="reminder-row"><label>☀️ Lunch</label><input type="time" id="remLunch" value="13:00"></div>
+        <div class="reminder-row"><label>🌙 Dinner</label><input type="time" id="remDinner" value="20:00"></div>
+      </div>
+      <button class="btn-s" onclick="saveReminders()">Save Reminders</button>
+      <div class="notif-status" id="notifStatus"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📤 Export Data (CSV)</div>
+      <button class="btn-s" onclick="exportCSV(7)">Export Last 7 Days</button>
+      <button class="btn-s" onclick="exportCSV(30)">Export Last 30 Days</button>
+      <button class="btn-s" onclick="exportCSV(365)">Export All Data (up to 1 year)</button>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;">Opens in Excel or Google Sheets with all meal details.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav class="bottom-nav">
+  <button class="bnav-btn active" id="nav-today" onclick="switchMainTab('today')"><span class="bicon">🏠</span>Today</button>
+  <button class="bnav-btn" id="nav-history" onclick="switchMainTab('history')"><span class="bicon">📊</span>History</button>
+  <button class="bnav-btn" id="nav-body" onclick="switchMainTab('body')"><span class="bicon">💧</span>Body</button>
+  <button class="bnav-btn" id="nav-settings" onclick="switchMainTab('settings')"><span class="bicon">⚙️</span>Settings</button>
+</nav>
+
+<div class="overlay" id="overlay" onclick="closeAdd()"></div>
 <div class="drawer" id="drawer">
   <div class="drawer-handle"></div>
   <div class="drawer-head">
@@ -231,7 +396,6 @@
       <div class="tab active" id="t-search" onclick="switchTab('search')">🔍 Search</div>
       <div class="tab" id="t-manual" onclick="switchTab('manual')">✏️ Manual</div>
     </div>
-
     <div id="panel-search">
       <input type="search" id="searchInput" placeholder="e.g. poha, momos, dal, chicken..." autocomplete="off">
       <div class="results" id="searchResults"><div class="es">Search 260+ Indian &amp; global foods</div></div>
@@ -251,7 +415,6 @@
         <button class="btn-p" id="addFoodBtn">Add to Log</button>
       </div>
     </div>
-
     <div id="panel-manual" style="display:none">
       <label style="margin-top:0">Food name</label>
       <input type="text" id="manName" placeholder="e.g. Ghar ki aloo sabzi...">
@@ -269,679 +432,768 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- PWA Install Banner -->
-<div id="installBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1d24;border-top:2px solid #5fb878;padding:14px 16px 20px;z-index:300;max-width:480px;margin:0 auto;">
+<div id="installBanner" style="display:none;position:fixed;bottom:var(--nav-h);left:0;right:0;background:#1a1d24;border-top:2px solid #5fb878;padding:14px 16px 16px;z-index:300;max-width:480px;margin:0 auto;">
   <div style="display:flex;align-items:center;gap:12px;">
     <img src="./icon.svg" style="width:42px;height:42px;border-radius:10px;flex-shrink:0;" alt="">
-    <div style="flex:1">
-      <div style="font-size:14px;font-weight:700;">Install Calorie Tracker</div>
-      <div style="font-size:12px;color:#8b8f99;margin-top:2px;">Add to home screen · works offline</div>
-    </div>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700;">Install Calorie Tracker</div><div style="font-size:12px;color:#8b8f99;margin-top:2px;">Add to home screen · works offline</div></div>
     <button onclick="installApp()" style="background:#5fb878;color:#0f1115;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;">Install</button>
     <button onclick="dismissInstall()" style="background:none;border:none;color:#8b8f99;font-size:22px;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;">×</button>
   </div>
 </div>
 
-<!-- iOS install instructions (shown only on iOS Safari) -->
-<div id="iosBanner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#1a1d24;border-top:2px solid #e8a33d;padding:14px 16px 22px;z-index:300;max-width:480px;margin:0 auto;">
+<div id="iosBanner" style="display:none;position:fixed;bottom:var(--nav-h);left:0;right:0;background:#1a1d24;border-top:2px solid #e8a33d;padding:14px 16px 18px;z-index:300;max-width:480px;margin:0 auto;">
   <div style="display:flex;align-items:flex-start;gap:10px;">
     <div style="font-size:24px;flex-shrink:0;">📲</div>
-    <div style="flex:1">
-      <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Install on iPhone / iPad</div>
-      <div style="font-size:12px;color:#8b8f99;line-height:1.6;">
-        1. Tap the <strong style="color:#e8a33d;">Share</strong> button (⎙) at the bottom of Safari<br>
-        2. Tap <strong style="color:#e8a33d;">"Add to Home Screen"</strong><br>
-        3. Tap <strong style="color:#e8a33d;">Add</strong> — done!
-      </div>
-    </div>
-    <button onclick="document.getElementById('iosBanner').style.display='none'" style="background:none;border:none;color:#8b8f99;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">×</button>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700;margin-bottom:4px;">Install on iPhone / iPad</div><div style="font-size:12px;color:#8b8f99;line-height:1.6;">1. Tap the <strong style="color:#e8a33d;">Share</strong> button (⎙) at the bottom of Safari<br>2. Tap <strong style="color:#e8a33d;">"Add to Home Screen"</strong><br>3. Tap <strong style="color:#e8a33d;">Add</strong> — done!</div></div>
+    <button id="iosBannerClose" style="background:none;border:none;color:#8b8f99;font-size:22px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">×</button>
   </div>
 </div>
 
 <script>
-const FOODS = [
-  // Indian Bread
+const FOODS=[
   {name:"Roti / Chapati",cat:"Indian",unit:"1 roti",cal:80,p:3,c:15,f:1.5},
   {name:"Phulka",cat:"Indian",unit:"1 small",cal:65,p:2,c:12,f:1},
   {name:"Paratha (plain)",cat:"Indian",unit:"1 paratha",cal:200,p:4,c:30,f:7},
   {name:"Aloo Paratha",cat:"Indian",unit:"1 paratha",cal:240,p:6,c:36,f:8},
   {name:"Methi Paratha",cat:"Indian",unit:"1 paratha",cal:230,p:5,c:33,f:8},
   {name:"Puri",cat:"Indian",unit:"1 puri",cal:80,p:2,c:11,f:3.5},
-  {name:"Makki ki Roti (Corn Bread)",cat:"Indian",unit:"1 roti",cal:90,p:2,c:18,f:1.5},
-  {name:"Bajra Roti (Pearl Millet Bread)",cat:"Indian",unit:"1 roti",cal:85,p:3,c:16,f:1.5},
-  {name:"Jowar Roti (Sorghum Bread)",cat:"Indian",unit:"1 roti",cal:80,p:2.5,c:17,f:1},
-  {name:"Missi Roti (Gram Flour Bread)",cat:"Indian",unit:"1 roti",cal:120,p:5,c:18,f:3},
-  {name:"Thepla (Methi Flatbread)",cat:"Indian",unit:"1 thepla",cal:110,p:3,c:16,f:4},
-  {name:"Sattu Paratha (Roasted Gram Bread)",cat:"Indian",unit:"1 paratha",cal:280,p:9,c:40,f:9},
-  {name:"Ghee Roti (Roti with Ghee)",cat:"Indian",unit:"1 roti",cal:125,p:3,c:15,f:6.5},
-  // Rice & Dal
+  {name:"Makki ki Roti",cat:"Indian",unit:"1 roti",cal:90,p:2,c:18,f:1.5},
+  {name:"Bajra Roti",cat:"Indian",unit:"1 roti",cal:85,p:3,c:16,f:1.5},
+  {name:"Jowar Roti",cat:"Indian",unit:"1 roti",cal:80,p:2.5,c:17,f:1},
+  {name:"Missi Roti",cat:"Indian",unit:"1 roti",cal:120,p:5,c:18,f:3},
+  {name:"Thepla",cat:"Indian",unit:"1 thepla",cal:110,p:3,c:16,f:4},
+  {name:"Sattu Paratha",cat:"Indian",unit:"1 paratha",cal:280,p:9,c:40,f:9},
+  {name:"Ghee Roti",cat:"Indian",unit:"1 roti",cal:125,p:3,c:15,f:6.5},
   {name:"Rice (cooked)",cat:"Indian",unit:"1 katori (150g)",cal:195,p:4,c:42,f:0.5},
   {name:"Brown Rice (cooked)",cat:"Indian",unit:"1 katori (150g)",cal:180,p:4,c:38,f:1.5},
   {name:"Dal Tadka",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:18,f:4},
   {name:"Dal Makhani",cat:"Indian",unit:"1 katori (150ml)",cal:200,p:9,c:20,f:8},
-  {name:"Dal Fry (Yellow Dal)",cat:"Indian",unit:"1 katori (150ml)",cal:155,p:9,c:18,f:5},
+  {name:"Dal Fry",cat:"Indian",unit:"1 katori (150ml)",cal:155,p:9,c:18,f:5},
   {name:"Chana Dal",cat:"Indian",unit:"1 katori (150ml)",cal:160,p:10,c:22,f:3},
-  {name:"Chana Dal with Lauki",cat:"Indian",unit:"1 katori (150ml)",cal:140,p:8,c:18,f:3},
   {name:"Rajma",cat:"Indian",unit:"1 katori (150ml)",cal:170,p:10,c:24,f:3},
   {name:"Chole",cat:"Indian",unit:"1 katori (150ml)",cal:175,p:10,c:25,f:4},
   {name:"Sambar",cat:"Indian",unit:"1 katori (150ml)",cal:90,p:5,c:12,f:2},
   {name:"Moong Dal",cat:"Indian",unit:"1 katori (150ml)",cal:130,p:8,c:18,f:2},
-  {name:"Dhuli Moong Dal (Yellow Split)",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:8,c:16,f:1.5},
   {name:"Arhar / Toor Dal",cat:"Indian",unit:"1 katori (150ml)",cal:145,p:9,c:19,f:3},
-  {name:"Sabut Masoor Dal (Whole Red Lentil)",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:20,f:3},
-  {name:"Panchmel Dal (Five Lentil Mix)",cat:"Indian",unit:"1 katori (150ml)",cal:160,p:10,c:20,f:4},
-  // Curries & Sabzi
+  {name:"Sabut Masoor Dal",cat:"Indian",unit:"1 katori (150ml)",cal:150,p:9,c:20,f:3},
   {name:"Paneer Butter Masala",cat:"Indian",unit:"1 katori (150ml)",cal:280,p:14,c:12,f:20},
   {name:"Palak Paneer",cat:"Indian",unit:"1 katori (150ml)",cal:230,p:12,c:10,f:16},
-  {name:"Shahi Paneer",cat:"Indian",unit:"1 katori (150ml)",cal:310,p:13,c:14,f:23},
   {name:"Matar Paneer",cat:"Indian",unit:"1 katori (150ml)",cal:220,p:10,c:18,f:12},
   {name:"Chicken Curry",cat:"Indian",unit:"1 katori (150ml)",cal:240,p:22,c:8,f:13},
   {name:"Butter Chicken",cat:"Indian",unit:"1 katori (150ml)",cal:280,p:24,c:10,f:16},
   {name:"Mutton Curry",cat:"Indian",unit:"1 katori (150ml)",cal:280,p:24,c:6,f:18},
   {name:"Fish Curry",cat:"Indian",unit:"1 katori (150ml)",cal:200,p:20,c:6,f:10},
   {name:"Egg Curry",cat:"Indian",unit:"2 eggs in gravy",cal:220,p:14,c:8,f:14},
-  {name:"Keema (Minced Mutton Curry)",cat:"Indian",unit:"1 katori (150ml)",cal:260,p:22,c:6,f:16},
-  {name:"Aloo Gobi (Cauliflower Potato)",cat:"Indian",unit:"1 katori (150ml)",cal:130,p:4,c:20,f:5},
-  {name:"Bhindi Masala (Okra)",cat:"Indian",unit:"1 katori (150ml)",cal:110,p:3,c:14,f:5},
-  {name:"Baingan Bharta (Roasted Brinjal)",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:3,c:15,f:6},
+  {name:"Aloo Gobi",cat:"Indian",unit:"1 katori (150ml)",cal:130,p:4,c:20,f:5},
+  {name:"Bhindi Masala",cat:"Indian",unit:"1 katori (150ml)",cal:110,p:3,c:14,f:5},
+  {name:"Baingan Bharta",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:3,c:15,f:6},
   {name:"Mix Veg Curry",cat:"Indian",unit:"1 katori (150ml)",cal:120,p:4,c:16,f:5},
   {name:"Aloo Matar",cat:"Indian",unit:"1 katori (150ml)",cal:145,p:4,c:22,f:5},
   {name:"Kadhi Pakora",cat:"Indian",unit:"1 katori (150ml)",cal:170,p:6,c:18,f:8},
-  // Rice Dishes
   {name:"Jeera Rice",cat:"Indian",unit:"1 katori (150g)",cal:220,p:4,c:44,f:3},
   {name:"Veg Biryani",cat:"Indian",unit:"1 katori (150g)",cal:250,p:6,c:48,f:4},
   {name:"Chicken Biryani",cat:"Indian",unit:"1 katori (150g)",cal:320,p:18,c:48,f:6},
-  {name:"Mutton Biryani",cat:"Indian",unit:"1 katori (150g)",cal:350,p:20,c:48,f:8},
   {name:"Khichdi",cat:"Indian",unit:"1 katori (150g)",cal:180,p:7,c:30,f:3},
-  {name:"Curd Rice",cat:"Indian",unit:"1 katori (150g)",cal:165,p:5,c:28,f:3},
-  {name:"Pulao",cat:"Indian",unit:"1 katori (150g)",cal:230,p:5,c:42,f:4},
-  {name:"Fried Rice (Veg)",cat:"Indian",unit:"1 katori (150g)",cal:280,p:6,c:50,f:6},
-  {name:"Sabudana Khichdi (Tapioca)",cat:"Indian",unit:"1 katori (150g)",cal:300,p:5,c:55,f:7},
-  {name:"Dalia (Broken Wheat Porridge)",cat:"Indian",unit:"1 katori (150g)",cal:150,p:5,c:28,f:2},
-  // Combo Plates
-  {name:"Dal Chawal (Dal + Rice)",cat:"Indian",unit:"1 plate",cal:345,p:13,c:60,f:4.5},
+  {name:"Dal Chawal",cat:"Indian",unit:"1 plate",cal:345,p:13,c:60,f:4.5},
   {name:"Rajma Chawal",cat:"Indian",unit:"1 plate",cal:365,p:14,c:64,f:3.5},
-  {name:"Kadhi Chawal (Kadhi + Rice)",cat:"Indian",unit:"1 plate",cal:350,p:10,c:58,f:9},
   {name:"Chole Bhature",cat:"Indian",unit:"1 bhatura + chole",cal:450,p:12,c:65,f:14},
-  {name:"Puri Bhaji",cat:"Indian",unit:"2 puri + sabzi",cal:320,p:6,c:44,f:13},
-  {name:"Aloo Puri",cat:"Indian",unit:"2 puri + aloo",cal:340,p:6,c:48,f:13},
-  {name:"Dal Baati Churma",cat:"Indian",unit:"2 baati + dal",cal:480,p:12,c:65,f:16},
-  {name:"Litti Chokha",cat:"Indian",unit:"2 litti + chokha",cal:400,p:10,c:58,f:14},
-
-  // Breakfast — North & Central Indian
-  {name:"Poha (Flattened Rice)",cat:"Breakfast",unit:"1 katori (150g)",cal:180,p:4,c:32,f:4},
+  {name:"Poha",cat:"Breakfast",unit:"1 katori (150g)",cal:180,p:4,c:32,f:4},
   {name:"Aloo Poha",cat:"Breakfast",unit:"1 katori (150g)",cal:200,p:4,c:36,f:5},
-  {name:"Matar Poha",cat:"Breakfast",unit:"1 katori (150g)",cal:195,p:6,c:34,f:4},
-  {name:"Upma (Sooji Upma)",cat:"Breakfast",unit:"1 katori (150g)",cal:190,p:5,c:30,f:6},
-  {name:"Besan Chilla (Gram Flour Pancake)",cat:"Breakfast",unit:"2 cheela",cal:240,p:12,c:30,f:8},
+  {name:"Upma",cat:"Breakfast",unit:"1 katori (150g)",cal:190,p:5,c:30,f:6},
+  {name:"Besan Chilla",cat:"Breakfast",unit:"2 cheela",cal:240,p:12,c:30,f:8},
   {name:"Moong Dal Cheela",cat:"Breakfast",unit:"2 cheela",cal:200,p:11,c:28,f:6},
-  {name:"Sooji Cheela (Rava Pancake)",cat:"Breakfast",unit:"2 cheela",cal:180,p:5,c:28,f:6},
   {name:"Bread Pakora",cat:"Breakfast",unit:"2 pieces",cal:280,p:7,c:38,f:11},
   {name:"Bread Omelette",cat:"Breakfast",unit:"2 bread + 2 eggs",cal:340,p:18,c:30,f:16},
-  {name:"Anda Bhurji with Bread (Egg Bhurji)",cat:"Breakfast",unit:"2 eggs + 2 slices",cal:340,p:18,c:32,f:16},
+  {name:"Anda Bhurji with Bread",cat:"Breakfast",unit:"2 eggs + 2 slices",cal:340,p:18,c:32,f:16},
   {name:"Bread with Butter & Jam",cat:"Breakfast",unit:"2 slices",cal:200,p:4,c:30,f:8},
-  {name:"Puri Chole",cat:"Breakfast",unit:"2 puri + chole",cal:420,p:13,c:62,f:13},
-  {name:"Puri Halwa",cat:"Breakfast",unit:"2 puri + halwa",cal:420,p:5,c:62,f:16},
-  {name:"Bedmi Puri with Sabzi",cat:"Breakfast",unit:"2 puri + sabzi",cal:380,p:9,c:54,f:14},
-  {name:"Kachori Sabzi",cat:"Breakfast",unit:"1 kachori + sabzi",cal:310,p:7,c:42,f:12},
-  {name:"Namkeen Seviyan (Vermicelli Upma)",cat:"Breakfast",unit:"1 katori",cal:200,p:5,c:32,f:6},
-  {name:"Meethi Seviyan (Sweet Vermicelli)",cat:"Breakfast",unit:"1 katori",cal:240,p:4,c:42,f:6},
-  {name:"Dalia Namkeen (Savoury Porridge)",cat:"Breakfast",unit:"1 katori (150g)",cal:150,p:5,c:25,f:3},
   {name:"Paratha with Dahi",cat:"Breakfast",unit:"1 paratha + dahi",cal:285,p:8,c:39,f:10.5},
-  {name:"Sabudana Vada",cat:"Breakfast",unit:"2 pieces",cal:180,p:4,c:28,f:6},
-  {name:"Bread Upma",cat:"Breakfast",unit:"1 bowl",cal:220,p:5,c:35,f:7},
-  // Breakfast — South Indian
   {name:"Idli",cat:"Breakfast",unit:"1 idli",cal:39,p:2,c:8,f:0.2},
   {name:"Dosa (Plain)",cat:"Breakfast",unit:"1 medium",cal:120,p:2,c:20,f:3},
   {name:"Masala Dosa",cat:"Breakfast",unit:"1 dosa",cal:220,p:5,c:35,f:7},
-  {name:"Rava Dosa (Sooji Dosa)",cat:"Breakfast",unit:"1 dosa",cal:130,p:3,c:22,f:4},
-  {name:"Set Dosa",cat:"Breakfast",unit:"3 small dosas",cal:200,p:5,c:34,f:5},
-  {name:"Pesarattu (Green Moong Dosa)",cat:"Breakfast",unit:"1 dosa",cal:150,p:8,c:22,f:3},
-  {name:"Uttapam (Plain)",cat:"Breakfast",unit:"1 medium",cal:150,p:3,c:25,f:4},
-  {name:"Uttapam (Onion Tomato)",cat:"Breakfast",unit:"1 medium",cal:170,p:4,c:27,f:5},
+  {name:"Uttapam",cat:"Breakfast",unit:"1 medium",cal:150,p:3,c:25,f:4},
   {name:"Medu Vada",cat:"Breakfast",unit:"1 vada",cal:100,p:3,c:14,f:4},
-  {name:"Sambar Vada",cat:"Breakfast",unit:"2 vada + sambar",cal:280,p:10,c:36,f:9},
-  {name:"Ven Pongal (Rice & Moong Dal)",cat:"Breakfast",unit:"1 katori (150g)",cal:200,p:5,c:35,f:6},
-  {name:"Rava Kesari (Sweet Sooji Bath)",cat:"Breakfast",unit:"1 katori",cal:220,p:3,c:38,f:7},
-  {name:"Appam",cat:"Breakfast",unit:"2 pieces",cal:120,p:3,c:22,f:2},
-
-  // Sabzi — Dry & Semi-dry Vegetables
-  {name:"Bhindi Bhujia (Okra Stir-fry)",cat:"Sabzi",unit:"1 katori (150g)",cal:120,p:3,c:12,f:6},
-  {name:"Parwal Bhujia (Pointed Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:110,p:3,c:12,f:5},
-  {name:"Aloo Sabzi (Potato Curry)",cat:"Sabzi",unit:"1 katori (150ml)",cal:150,p:3,c:25,f:5},
-  {name:"Dum Aloo (Spiced Baby Potatoes)",cat:"Sabzi",unit:"1 katori (150ml)",cal:200,p:4,c:28,f:8},
-  {name:"Aloo Baingan (Potato & Brinjal)",cat:"Sabzi",unit:"1 katori (150ml)",cal:140,p:3,c:18,f:6},
-  {name:"Lauki Sabzi (Bottle Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:2,c:10,f:3},
-  {name:"Tinda Sabzi (Apple Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:90,p:2,c:12,f:3},
-  {name:"Turai / Gilki Sabzi (Ridge Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:2,c:9,f:2},
-  {name:"Karela Sabzi (Bitter Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:100,p:2,c:12,f:4},
-  {name:"Arbi Sabzi (Taro Root / Colocasia)",cat:"Sabzi",unit:"1 katori (150g)",cal:160,p:3,c:28,f:5},
-  {name:"Kathal Sabzi (Raw Jackfruit)",cat:"Sabzi",unit:"1 katori (150ml)",cal:155,p:3,c:22,f:5},
-  {name:"Patta Gobhi Sabzi (Cabbage)",cat:"Sabzi",unit:"1 katori (150g)",cal:90,p:3,c:10,f:4},
-  {name:"Sarson ka Saag (Mustard Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:130,p:5,c:15,f:5},
-  {name:"Palak Saag (Spinach Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:4,c:8,f:3},
-  {name:"Methi Sabzi (Fenugreek Leaves)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:4,c:7,f:2},
-  {name:"Shimla Mirch Sabzi (Capsicum)",cat:"Sabzi",unit:"1 katori (150g)",cal:95,p:2,c:11,f:4},
-  {name:"Sev Tamatar Sabzi",cat:"Sabzi",unit:"1 katori (150ml)",cal:160,p:4,c:18,f:7},
-  {name:"Chaulai Saag (Amaranth Greens)",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:3,c:8,f:2},
-  {name:"Gawar Phali Sabzi (Cluster Beans)",cat:"Sabzi",unit:"1 katori (150g)",cal:85,p:3,c:11,f:3},
-  {name:"Sem Phali Sabzi (Flat Beans)",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:3,c:10,f:3},
-  {name:"Torai / Nenua Sabzi (Sponge Gourd)",cat:"Sabzi",unit:"1 katori (150g)",cal:68,p:2,c:9,f:2},
-  {name:"Matar Mushroom (Peas & Mushroom)",cat:"Sabzi",unit:"1 katori (150ml)",cal:130,p:6,c:14,f:5},
-  {name:"Aloo Palak (Potato & Spinach)",cat:"Sabzi",unit:"1 katori (150ml)",cal:145,p:4,c:20,f:5},
-
-  // Snacks — Street & Evening
+  {name:"Bhindi Bhujia",cat:"Sabzi",unit:"1 katori (150g)",cal:120,p:3,c:12,f:6},
+  {name:"Aloo Sabzi",cat:"Sabzi",unit:"1 katori (150ml)",cal:150,p:3,c:25,f:5},
+  {name:"Lauki Sabzi",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:2,c:10,f:3},
+  {name:"Karela Sabzi",cat:"Sabzi",unit:"1 katori (150g)",cal:100,p:2,c:12,f:4},
+  {name:"Sarson ka Saag",cat:"Sabzi",unit:"1 katori (150g)",cal:130,p:5,c:15,f:5},
+  {name:"Palak Saag",cat:"Sabzi",unit:"1 katori (150g)",cal:80,p:4,c:8,f:3},
+  {name:"Methi Sabzi",cat:"Sabzi",unit:"1 katori (150g)",cal:70,p:4,c:7,f:2},
+  {name:"Aloo Palak",cat:"Sabzi",unit:"1 katori (150ml)",cal:145,p:4,c:20,f:5},
   {name:"Samosa",cat:"Snacks",unit:"1 samosa",cal:130,p:3,c:17,f:6},
   {name:"Pakora / Bhajiya",cat:"Snacks",unit:"5 pieces",cal:200,p:5,c:22,f:10},
-  {name:"Bread Pakora (Street)",cat:"Snacks",unit:"2 pieces",cal:280,p:7,c:38,f:11},
   {name:"Vada Pav",cat:"Snacks",unit:"1 piece",cal:290,p:7,c:45,f:9},
   {name:"Pav Bhaji",cat:"Snacks",unit:"1 serving (2 pav)",cal:380,p:9,c:58,f:12},
   {name:"Dhokla",cat:"Snacks",unit:"2 pieces",cal:100,p:5,c:16,f:2},
   {name:"Bhel Puri",cat:"Snacks",unit:"1 bowl",cal:180,p:4,c:32,f:5},
-  {name:"Sev Puri",cat:"Snacks",unit:"1 plate (5 pcs)",cal:220,p:5,c:35,f:8},
   {name:"Pani Puri / Golgappa",cat:"Snacks",unit:"6 pieces",cal:170,p:3,c:28,f:5},
-  {name:"Kachori",cat:"Snacks",unit:"1 piece",cal:180,p:4,c:24,f:8},
   {name:"Aloo Tikki",cat:"Snacks",unit:"2 pieces",cal:200,p:4,c:30,f:7},
-  {name:"Aloo Chaat",cat:"Snacks",unit:"1 plate",cal:220,p:4,c:38,f:6},
   {name:"Chana Chaat",cat:"Snacks",unit:"1 plate",cal:200,p:9,c:32,f:4},
-  {name:"Dahi Bhalla",cat:"Snacks",unit:"2 pieces",cal:220,p:8,c:32,f:6},
-  {name:"Bhutta / Corn Cob (Roasted)",cat:"Snacks",unit:"1 cob",cal:130,p:4,c:28,f:2},
-  {name:"Muri / Murmura Chaat",cat:"Snacks",unit:"1 bowl",cal:150,p:3,c:28,f:3},
-  {name:"Chuda with Dahi (Poha with Curd)",cat:"Snacks",unit:"1 katori",cal:200,p:6,c:35,f:4},
-  {name:"Chowmein (Street Style)",cat:"Snacks",unit:"1 plate",cal:380,p:8,c:58,f:12},
-  {name:"Veg Manchurian (Gravy)",cat:"Snacks",unit:"1 plate",cal:280,p:6,c:38,f:11},
-  {name:"Chicken Manchurian",cat:"Snacks",unit:"1 plate",cal:320,p:18,c:30,f:14},
-  {name:"Veg Frankie / Veg Roll",cat:"Snacks",unit:"1 roll",cal:280,p:7,c:42,f:9},
-  {name:"Egg Roll (Frankie)",cat:"Snacks",unit:"1 roll",cal:330,p:14,c:40,f:12},
-  {name:"Chicken Roll (Frankie)",cat:"Snacks",unit:"1 roll",cal:380,p:20,c:40,f:14},
   {name:"Momos (Veg, Steamed)",cat:"Snacks",unit:"6 pieces",cal:200,p:6,c:32,f:5},
   {name:"Momos (Chicken, Steamed)",cat:"Snacks",unit:"6 pieces",cal:240,p:14,c:28,f:8},
   {name:"Momos (Fried)",cat:"Snacks",unit:"6 pieces",cal:300,p:8,c:36,f:13},
-  {name:"Egg Bhurji (Masala Scrambled Egg)",cat:"Snacks",unit:"2 eggs",cal:200,p:13,c:4,f:15},
-  {name:"Spring Roll (Veg)",cat:"Snacks",unit:"2 pieces",cal:200,p:4,c:28,f:8},
-  {name:"Sandwich (Veg, Grilled)",cat:"Snacks",unit:"1 sandwich",cal:220,p:7,c:32,f:7},
-  {name:"Sandwich (Chicken)",cat:"Snacks",unit:"1 sandwich",cal:310,p:20,c:34,f:10},
   {name:"Maggi Noodles",cat:"Snacks",unit:"1 packet cooked",cal:360,p:8,c:50,f:14},
-  {name:"Khakhra",cat:"Snacks",unit:"2 pieces",cal:90,p:3,c:15,f:2.5},
-  {name:"Tea with Glucose Biscuits (2)",cat:"Snacks",unit:"1 cup + 2 biscuits",cal:110,p:2,c:20,f:3},
-  {name:"Tea with Marie Biscuits (4)",cat:"Snacks",unit:"1 cup + 4 biscuits",cal:130,p:2,c:25,f:3},
-  {name:"Tea with Parle-G (4 biscuits)",cat:"Snacks",unit:"1 cup + 4 biscuits",cal:125,p:2,c:24,f:3},
-  {name:"Tea with Namkeen / Mixture",cat:"Snacks",unit:"1 cup + 1 handful",cal:200,p:4,c:22,f:9},
+  {name:"Chowmein",cat:"Snacks",unit:"1 plate",cal:380,p:8,c:58,f:12},
+  {name:"Veg Frankie",cat:"Snacks",unit:"1 roll",cal:280,p:7,c:42,f:9},
+  {name:"Egg Roll",cat:"Snacks",unit:"1 roll",cal:330,p:14,c:40,f:12},
+  {name:"Tea with Marie Biscuits",cat:"Snacks",unit:"1 cup + 4 biscuits",cal:130,p:2,c:25,f:3},
   {name:"Bhujia Sev",cat:"Snacks",unit:"1 handful (30g)",cal:160,p:4,c:18,f:8},
-  {name:"Namkeen (Mixed Snack Mix)",cat:"Snacks",unit:"1 handful (30g)",cal:140,p:4,c:16,f:7},
-  {name:"Mixture (Dry Snack)",cat:"Snacks",unit:"1 handful (30g)",cal:155,p:4,c:18,f:7},
-  {name:"Chivda (Flattened Rice Snack)",cat:"Snacks",unit:"1 handful (30g)",cal:120,p:3,c:18,f:4},
-  {name:"Shakarpara",cat:"Snacks",unit:"5 pieces",cal:120,p:2,c:18,f:5},
+  {name:"Namkeen",cat:"Snacks",unit:"1 handful (30g)",cal:140,p:4,c:16,f:7},
   {name:"Papad (Roasted)",cat:"Snacks",unit:"1 papad",cal:35,p:2,c:5,f:1},
-  {name:"Papad (Fried)",cat:"Snacks",unit:"1 papad",cal:60,p:2,c:5,f:3.5},
-  {name:"Green Chutney (Mint/Coriander)",cat:"Snacks",unit:"2 tbsp",cal:15,p:0.5,c:2,f:0.3},
-  {name:"Imli Chutney (Tamarind)",cat:"Snacks",unit:"2 tbsp",cal:40,p:0.2,c:10,f:0.1},
-  {name:"Achar / Mixed Pickle",cat:"Snacks",unit:"1 tsp",cal:20,p:0,c:1,f:2},
-
-  // Sweets
   {name:"Gulab Jamun",cat:"Sweets",unit:"2 pieces",cal:220,p:4,c:38,f:7},
   {name:"Rasgulla",cat:"Sweets",unit:"2 pieces",cal:180,p:5,c:34,f:2},
   {name:"Besan Ladoo",cat:"Sweets",unit:"1 ladoo",cal:170,p:3,c:25,f:7},
   {name:"Kheer",cat:"Sweets",unit:"1 small bowl",cal:190,p:5,c:28,f:6},
   {name:"Suji Halwa",cat:"Sweets",unit:"1 katori",cal:250,p:4,c:40,f:8},
-  {name:"Gajar Halwa (Carrot Halwa)",cat:"Sweets",unit:"1 katori",cal:280,p:5,c:40,f:11},
+  {name:"Gajar Halwa",cat:"Sweets",unit:"1 katori",cal:280,p:5,c:40,f:11},
   {name:"Jalebi",cat:"Sweets",unit:"2 pieces",cal:150,p:1,c:32,f:3},
-  {name:"Barfi",cat:"Sweets",unit:"1 piece",cal:120,p:3,c:18,f:5},
-  {name:"Rasmalai",cat:"Sweets",unit:"2 pieces",cal:170,p:7,c:22,f:6},
-  {name:"Shrikhand",cat:"Sweets",unit:"1 small bowl",cal:220,p:7,c:32,f:7},
   {name:"Ice Cream",cat:"Sweets",unit:"1 scoop",cal:130,p:2,c:16,f:7},
-  {name:"Mishti Doi (Bengali Sweet Curd)",cat:"Sweets",unit:"1 small pot (120g)",cal:160,p:5,c:25,f:4},
-  {name:"Rava Kesari (Sooji Sheera)",cat:"Sweets",unit:"1 katori",cal:250,p:3,c:42,f:8},
-
-  // Dairy
   {name:"Full Fat Milk",cat:"Dairy",unit:"1 glass (200ml)",cal:130,p:7,c:10,f:7},
   {name:"Toned Milk",cat:"Dairy",unit:"1 glass (200ml)",cal:100,p:7,c:10,f:3.5},
   {name:"Dahi / Curd (Plain)",cat:"Dairy",unit:"1 katori (150g)",cal:85,p:5,c:9,f:3.5},
-  {name:"Dahi with Sugar (Meethi Dahi)",cat:"Dairy",unit:"1 katori (150g)",cal:140,p:5,c:22,f:3.5},
-  {name:"Namkeen Dahi (Dahi with Salt)",cat:"Dairy",unit:"1 katori (150g)",cal:85,p:5,c:9,f:3.5},
-  {name:"Dahi with Gur (Jaggery Curd)",cat:"Dairy",unit:"1 katori (150g)",cal:115,p:5,c:17,f:3.5},
   {name:"Plain Raita",cat:"Dairy",unit:"1 katori (150g)",cal:65,p:3,c:6,f:3},
-  {name:"Boondi Raita",cat:"Dairy",unit:"1 katori (150g)",cal:120,p:4,c:12,f:5},
-  {name:"Kheera Raita (Cucumber Raita)",cat:"Dairy",unit:"1 katori (150g)",cal:70,p:3,c:7,f:3},
-  {name:"Aloo Raita (Potato Raita)",cat:"Dairy",unit:"1 katori (150g)",cal:110,p:4,c:15,f:3},
-  {name:"Paneer",cat:"Dairy",unit:"100g",cal:265,p:18,c:2,f:20},
   {name:"Sweet Lassi",cat:"Dairy",unit:"1 glass (250ml)",cal:200,p:6,c:30,f:6},
   {name:"Chaas / Buttermilk",cat:"Dairy",unit:"1 glass (250ml)",cal:40,p:2,c:4,f:1},
+  {name:"Paneer",cat:"Dairy",unit:"100g",cal:265,p:18,c:2,f:20},
   {name:"Ghee",cat:"Dairy",unit:"1 tsp (5g)",cal:45,p:0,c:0,f:5},
-  {name:"Butter",cat:"Dairy",unit:"1 tsp (5g)",cal:35,p:0,c:0,f:4},
-  {name:"Cheese slice",cat:"Dairy",unit:"1 slice (20g)",cal:70,p:4,c:0.5,f:6},
-
-  // Drinks
   {name:"Chai (with milk)",cat:"Drinks",unit:"1 cup (150ml)",cal:60,p:2,c:8,f:2},
   {name:"Coffee (with milk)",cat:"Drinks",unit:"1 cup (150ml)",cal:50,p:2,c:6,f:2},
-  {name:"Black Tea / Coffee",cat:"Drinks",unit:"1 cup",cal:5,p:0,c:1,f:0},
   {name:"Coconut Water",cat:"Drinks",unit:"1 glass (200ml)",cal:46,p:2,c:9,f:0.5},
-  {name:"Fresh Lime Soda / Nimbu Pani",cat:"Drinks",unit:"1 glass (200ml)",cal:35,p:0,c:9,f:0},
-  {name:"Orange Juice",cat:"Drinks",unit:"1 glass (200ml)",cal:90,p:1,c:21,f:0.2},
+  {name:"Nimbu Pani",cat:"Drinks",unit:"1 glass (200ml)",cal:35,p:0,c:9,f:0},
   {name:"Mango Shake",cat:"Drinks",unit:"1 glass (300ml)",cal:230,p:5,c:40,f:6},
-  {name:"Cold Coffee",cat:"Drinks",unit:"1 glass (300ml)",cal:200,p:6,c:30,f:7},
-  {name:"Soft Drink (Coke / Pepsi)",cat:"Drinks",unit:"1 can (330ml)",cal:140,p:0,c:35,f:0},
-  {name:"Rooh Afza Sharbat",cat:"Drinks",unit:"1 glass (200ml)",cal:90,p:0,c:22,f:0},
-  {name:"Aam Panna (Raw Mango Drink)",cat:"Drinks",unit:"1 glass (200ml)",cal:60,p:0,c:15,f:0},
-  {name:"Jaljeera",cat:"Drinks",unit:"1 glass (200ml)",cal:30,p:0,c:7,f:0},
-  {name:"Sattu Drink (Chilled)",cat:"Drinks",unit:"1 glass (250ml)",cal:120,p:6,c:22,f:1},
-  {name:"Thandai",cat:"Drinks",unit:"1 glass (250ml)",cal:180,p:5,c:28,f:6},
-  {name:"Kanji (Fermented Mustard Drink)",cat:"Drinks",unit:"1 glass (200ml)",cal:40,p:1,c:8,f:0.5},
-
-  // Fruits
+  {name:"Soft Drink (Coke/Pepsi)",cat:"Drinks",unit:"1 can (330ml)",cal:140,p:0,c:35,f:0},
+  {name:"Sattu Drink",cat:"Drinks",unit:"1 glass (250ml)",cal:120,p:6,c:22,f:1},
   {name:"Apple",cat:"Fruits",unit:"1 medium",cal:95,p:0.5,c:25,f:0.3},
   {name:"Banana",cat:"Fruits",unit:"1 medium",cal:105,p:1,c:27,f:0.4},
   {name:"Mango",cat:"Fruits",unit:"1 cup (165g)",cal:100,p:1,c:25,f:0.6},
   {name:"Orange",cat:"Fruits",unit:"1 medium",cal:65,p:1,c:16,f:0.2},
   {name:"Papaya",cat:"Fruits",unit:"1 cup (145g)",cal:55,p:1,c:14,f:0.2},
   {name:"Watermelon",cat:"Fruits",unit:"1 slice (280g)",cal:85,p:2,c:21,f:0.4},
-  {name:"Grapes",cat:"Fruits",unit:"1 cup (150g)",cal:100,p:1,c:27,f:0.2},
   {name:"Guava",cat:"Fruits",unit:"1 medium",cal:45,p:1.5,c:10,f:0.5},
   {name:"Pomegranate",cat:"Fruits",unit:"1 cup seeds",cal:83,p:2,c:19,f:1},
-  {name:"Pineapple",cat:"Fruits",unit:"1 cup (165g)",cal:82,p:1,c:22,f:0.2},
-  {name:"Chikoo / Sapota",cat:"Fruits",unit:"1 medium",cal:80,p:0.5,c:20,f:0.5},
-
-  // Protein & Eggs
   {name:"Boiled Egg",cat:"Protein",unit:"1 large",cal:78,p:6,c:0.6,f:5},
   {name:"Fried Egg",cat:"Protein",unit:"1 large",cal:90,p:6,c:0.4,f:7},
-  {name:"Scrambled Eggs (plain)",cat:"Protein",unit:"2 eggs",cal:180,p:12,c:2,f:14},
   {name:"Omelette (plain)",cat:"Protein",unit:"2 eggs",cal:160,p:12,c:1,f:12},
   {name:"Chicken Breast (grilled)",cat:"Protein",unit:"100g",cal:165,p:31,c:0,f:3.6},
   {name:"Chicken Tandoori",cat:"Protein",unit:"2 pieces (200g)",cal:280,p:32,c:4,f:14},
-  {name:"Grilled Fish",cat:"Protein",unit:"100g",cal:130,p:26,c:0,f:3},
   {name:"Sprouts (mixed)",cat:"Protein",unit:"1 katori (100g)",cal:50,p:4,c:7,f:0.5},
   {name:"Soya Chunks (cooked)",cat:"Protein",unit:"1 katori (100g)",cal:125,p:18,c:9,f:1},
   {name:"Peanuts",cat:"Protein",unit:"1 handful (30g)",cal:170,p:7,c:5,f:14},
   {name:"Almonds",cat:"Protein",unit:"10 pieces",cal:82,p:3,c:3,f:7},
-  {name:"Cashews",cat:"Protein",unit:"10 pieces",cal:80,p:2,c:5,f:6.5},
-  {name:"Peanut Butter",cat:"Protein",unit:"1 tbsp",cal:95,p:4,c:3,f:8},
   {name:"Whey Protein Shake",cat:"Protein",unit:"1 scoop (30g)",cal:120,p:24,c:3,f:1.5},
-
-  // Western & Others
   {name:"Oats (cooked)",cat:"Western",unit:"1 bowl (180g)",cal:155,p:5,c:27,f:3},
   {name:"Bread (white)",cat:"Western",unit:"1 slice",cal:79,p:3,c:15,f:1},
-  {name:"Bread (brown/wheat)",cat:"Western",unit:"1 slice",cal:69,p:3,c:13,f:1},
+  {name:"Bread (brown)",cat:"Western",unit:"1 slice",cal:69,p:3,c:13,f:1},
   {name:"Pasta (cooked)",cat:"Western",unit:"1 bowl (200g)",cal:250,p:9,c:48,f:2},
-  {name:"Pizza (regular)",cat:"Western",unit:"1 slice",cal:285,p:12,c:36,f:10},
+  {name:"Pizza",cat:"Western",unit:"1 slice",cal:285,p:12,c:36,f:10},
   {name:"Burger",cat:"Western",unit:"1 regular",cal:350,p:17,c:35,f:15},
   {name:"French Fries",cat:"Western",unit:"medium serving",cal:340,p:4,c:44,f:16},
-  {name:"Caesar Salad",cat:"Western",unit:"1 bowl",cal:250,p:8,c:15,f:18},
-  {name:"Garden Salad",cat:"Western",unit:"1 bowl",cal:60,p:2,c:10,f:2},
-  {name:"Boiled Potato",cat:"Western",unit:"1 medium (150g)",cal:130,p:3,c:30,f:0.2},
   {name:"Cornflakes with milk",cat:"Western",unit:"1 bowl",cal:200,p:5,c:38,f:3},
-  {name:"Muesli with milk",cat:"Western",unit:"1 bowl",cal:280,p:8,c:48,f:6},
 ];
 
-// ── Constants ──────────────────────────────────────────────
-const MEALS = {
-  breakfast: {label:'Breakfast', icon:'🌅', color:'var(--c-bf)'},
-  lunch:     {label:'Lunch',     icon:'☀️', color:'var(--c-lu)'},
-  dinner:    {label:'Dinner',    icon:'🌙', color:'var(--c-dn)'},
-  extra:     {label:'Snacks / Tea / Extra', icon:'🍵', color:'var(--c-ex)'},
+const MEALS={
+  breakfast:{label:'Breakfast',icon:'🌅',color:'var(--c-bf)'},
+  lunch:{label:'Lunch',icon:'☀️',color:'var(--c-lu)'},
+  dinner:{label:'Dinner',icon:'🌙',color:'var(--c-dn)'},
+  extra:{label:'Snacks / Tea / Extra',icon:'🍵',color:'var(--c-ex)'},
 };
-const MEAL_KEYS = ['breakfast','lunch','dinner','extra'];
+const MEAL_KEYS=['breakfast','lunch','dinner','extra'];
 
 // ── Storage ────────────────────────────────────────────────
-const storage = window.storage || {
-  get: k => { const v = localStorage.getItem(k); return Promise.resolve(v !== null ? {value:v} : null); },
-  set: (k, v) => { localStorage.setItem(k, v); return Promise.resolve(); }
+const storage=window.storage||{
+  get:k=>{const v=localStorage.getItem(k);return Promise.resolve(v!==null?{value:v}:null);},
+  set:(k,v)=>{localStorage.setItem(k,v);return Promise.resolve();},
 };
 
-// ── State ──────────────────────────────────────────────────
-let currentDate = todayStr();
-let addingToMeal = null;
-let selectedFood = null;
+// ── Profile-aware key prefix ───────────────────────────────
+let activeProfile='default';
+function pk(key){return activeProfile==='default'?key:`p:${activeProfile}:${key}`;}
 
-// ── Helpers ────────────────────────────────────────────────
-function todayStr() { return new Date().toISOString().slice(0,10); }
-function timeNow()  { return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); }
-function r1(n)      { return Math.round(n * 10) / 10; }
-function esc(s)     { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-// ── Day Navigation ─────────────────────────────────────────
-function changeDay(delta) {
-  const d = new Date(currentDate + 'T00:00:00');
-  d.setDate(d.getDate() + delta);
-  const nd = d.toISOString().slice(0,10);
-  if (nd > todayStr()) return;
-  currentDate = nd;
-  updateDateUI();
-  renderAll();
+// ── Profiles ───────────────────────────────────────────────
+function loadProfiles(){
+  try{const v=localStorage.getItem('profiles');return v?JSON.parse(v):[{id:'default',name:'Me'}];}
+  catch(e){return [{id:'default',name:'Me'}];}
+}
+function saveProfilesList(list){localStorage.setItem('profiles',JSON.stringify(list));}
+function getActiveProfileName(){
+  const list=loadProfiles();
+  const p=list.find(p=>p.id===activeProfile);
+  return p?p.name:'Me';
 }
 
-function openDatePicker() {
-  const p = document.getElementById('datePicker');
-  p.max = todayStr();
-  p.value = currentDate;
-  p.style.pointerEvents = 'auto';
-  p.click();
-  p.style.pointerEvents = 'none';
+function cycleProfile(){
+  const list=loadProfiles();
+  if(list.length<=1){switchMainTab('settings');return;}
+  const idx=list.findIndex(p=>p.id===activeProfile);
+  const next=list[(idx+1)%list.length];
+  activeProfile=next.id;
+  localStorage.setItem('activeProfile',activeProfile);
+  document.getElementById('profileName').textContent=next.name;
+  renderAll();renderCommonMeals();renderWaterSmall();loadGoalInputs();renderProfileListUI();
+  toast('Switched to '+next.name);
 }
 
-function jumpToDate(val) {
-  if (!val || val > todayStr()) return;
-  currentDate = val;
-  updateDateUI();
-  renderAll();
+function addProfile(){
+  const name=document.getElementById('newProfileName').value.trim();
+  if(!name){toast('Enter a name');return;}
+  const list=loadProfiles();
+  if(list.find(p=>p.name.toLowerCase()===name.toLowerCase())){toast('Profile already exists');return;}
+  const id='p_'+Date.now();
+  list.push({id,name});
+  saveProfilesList(list);
+  document.getElementById('newProfileName').value='';
+  renderProfileListUI();
+  toast('Profile "'+name+'" added');
 }
 
-function updateDateUI() {
-  const isToday = currentDate === todayStr();
-  const d = new Date(currentDate + 'T00:00:00');
-  document.getElementById('dateStr').textContent =
-    d.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
-  const badge = document.getElementById('todayBadge');
-  badge.style.visibility = 'visible';
-  badge.textContent = isToday ? 'TODAY · tap to change date' : 'tap to jump to a date';
-  document.getElementById('nextDay').disabled = isToday;
-}
-
-// ── Storage Helpers ────────────────────────────────────────
-function dayKey(date) { return 'day:' + (date || currentDate); }
-
-async function loadDay(date) {
-  try {
-    const r = await storage.get(dayKey(date || currentDate));
-    if (!r) return emptyDay();
-    const d = JSON.parse(r.value);
-    return {
-      breakfast: d.breakfast || [],
-      lunch:     d.lunch     || [],
-      dinner:    d.dinner    || [],
-      extra:     d.extra     || [],
-    };
-  } catch(e) { return emptyDay(); }
-}
-
-function emptyDay() { return {breakfast:[],lunch:[],dinner:[],extra:[]}; }
-
-async function saveDay(data, date) {
-  try {
-    await storage.set(dayKey(date || currentDate), JSON.stringify(data));
-    const dot = document.getElementById('saveDot');
-    if (dot) { dot.classList.add('show'); setTimeout(() => dot.classList.remove('show'), 1500); }
+function deleteProfile(id){
+  if(id==='default'){toast("Can't delete default profile");return;}
+  if(!confirm('Delete this profile and all its data?'))return;
+  const list=loadProfiles().filter(p=>p.id!==id);
+  saveProfilesList(list);
+  if(activeProfile===id){
+    activeProfile='default';
+    localStorage.setItem('activeProfile','default');
+    document.getElementById('profileName').textContent=getActiveProfileName();
+    renderAll();renderCommonMeals();renderWaterSmall();
   }
-  catch(e) { console.error(e); }
+  renderProfileListUI();
 }
 
-async function loadCommonMeals() {
-  try { const r = await storage.get('commonMeals'); return r ? JSON.parse(r.value) : []; }
-  catch(e) { return []; }
-}
-async function saveCommonMeals(list) {
-  try { await storage.set('commonMeals', JSON.stringify(list)); } catch(e) {}
-}
-async function addToCommonMeals(item) {
-  let list = await loadCommonMeals();
-  list = list.filter(m => !(m.name === item.name && m.quantity === item.quantity));
-  list.unshift(item);
-  list = list.slice(0, 10);
-  await saveCommonMeals(list);
-  renderCommonMeals();
-}
-
-// ── Render ─────────────────────────────────────────────────
-async function renderAll() {
-  const data = await loadDay();
-  MEAL_KEYS.forEach(k => renderSection(k, data[k]));
-  const all = MEAL_KEYS.flatMap(k => data[k]);
-  const t = all.reduce((a,m) => ({
-    cal: a.cal + Number(m.calories||0),
-    p:   a.p   + Number(m.protein||0),
-    c:   a.c   + Number(m.carbs||0),
-    f:   a.f   + Number(m.fat||0),
-  }), {cal:0,p:0,c:0,f:0});
-  document.getElementById('totCal').textContent = Math.round(t.cal);
-  document.getElementById('totP').textContent   = Math.round(t.p) + 'g';
-  document.getElementById('totC').textContent   = Math.round(t.c) + 'g';
-  document.getElementById('totF').textContent   = Math.round(t.f) + 'g';
-}
-
-function renderSection(k, items) {
-  const el = document.getElementById('items-' + k);
-  const kcalEl = document.getElementById('kcal-' + k);
-  kcalEl.textContent = Math.round(items.reduce((a,m) => a + Number(m.calories||0), 0)) + ' kcal';
-  if (items.length === 0) { el.innerHTML = '<div class="m-empty">Nothing added yet</div>'; return; }
-  el.innerHTML = '';
-  items.forEach((item, idx) => {
-    const div = document.createElement('div');
-    div.className = 'm-item';
-    div.innerHTML = `
-      <div style="flex:1;min-width:0">
-        <div class="m-iname">${esc(item.name)}</div>
-        <div class="m-imeta">${item.time ? item.time + ' · ' : ''}${esc(item.quantity)} · P ${item.protein}g · C ${item.carbs}g · F ${item.fat}g</div>
-      </div>
-      <div style="display:flex;align-items:center;flex-shrink:0">
-        <div class="m-ical">${item.calories} kcal</div>
-        <button class="del" onclick="deleteItem('${k}',${idx})">✕</button>
-      </div>`;
-    el.appendChild(div);
-  });
-}
-
-async function renderCommonMeals() {
-  const list = await loadCommonMeals();
-  const el = document.getElementById('commonList');
-  if (!list.length) {
-    el.innerHTML = '<span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span>';
-    return;
-  }
-  el.innerHTML = '';
-  list.forEach(item => {
-    const c = document.createElement('div');
-    c.className = 'chip';
-    c.textContent = `${item.name} — ${item.calories} kcal`;
-    c.onclick = () => quickAdd(item);
+function renderProfileListUI(){
+  const list=loadProfiles();
+  const el=document.getElementById('profileList');
+  el.innerHTML='';
+  list.forEach(p=>{
+    const c=document.createElement('div');
+    c.className='p-chip'+(p.id===activeProfile?' active':'');
+    c.innerHTML=`<span onclick="switchToProfile('${p.id}')">${esc(p.name)}</span>`+(p.id!=='default'?`<span class="dp" onclick="deleteProfile('${p.id}')">✕</span>`:'');
     el.appendChild(c);
   });
 }
 
+window.switchToProfile=function(id){
+  activeProfile=id;
+  localStorage.setItem('activeProfile',id);
+  document.getElementById('profileName').textContent=getActiveProfileName();
+  renderAll();renderCommonMeals();renderWaterSmall();loadGoalInputs();renderProfileListUI();
+  toast('Switched to '+getActiveProfileName());
+};
+
+// ── State ──────────────────────────────────────────────────
+let currentDate=todayStr();
+let addingToMeal=null;
+let selectedFood=null;
+let histPeriod=7;
+let histChartInst=null;
+let weightChartInst=null;
+let _reminderTimers=[];
+
+// ── Helpers ────────────────────────────────────────────────
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function timeNow(){return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+function r1(n){return Math.round(n*10)/10;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtDate(str){
+  const d=new Date(str+'T00:00:00');
+  return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+}
+
+// ── Main Tab Switching ─────────────────────────────────────
+function switchMainTab(tab){
+  ['today','history','body','settings'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('nav-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='history')loadHistory(histPeriod);
+  if(tab==='body'){renderWaterBig();renderWeightHist();}
+  if(tab==='settings'){renderProfileListUI();loadGoalInputs();loadReminderInputs();}
+}
+
+// ── Day Navigation ─────────────────────────────────────────
+function changeDay(delta){
+  const d=new Date(currentDate+'T00:00:00');
+  d.setDate(d.getDate()+delta);
+  const nd=d.toISOString().slice(0,10);
+  if(nd>todayStr())return;
+  currentDate=nd;updateDateUI();renderAll();
+}
+function openDatePicker(){
+  const p=document.getElementById('datePicker');
+  p.max=todayStr();p.value=currentDate;
+  p.style.pointerEvents='auto';p.click();p.style.pointerEvents='none';
+}
+function jumpToDate(val){
+  if(!val||val>todayStr())return;
+  currentDate=val;updateDateUI();renderAll();
+}
+function updateDateUI(){
+  const isToday=currentDate===todayStr();
+  const d=new Date(currentDate+'T00:00:00');
+  document.getElementById('dateStr').textContent=d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  const badge=document.getElementById('todayBadge');
+  badge.style.visibility='visible';
+  badge.textContent=isToday?'TODAY · tap to change date':'tap to jump to a date';
+  document.getElementById('nextDay').disabled=isToday;
+}
+
+// ── Storage Helpers ────────────────────────────────────────
+function dayKey(date){return pk('day:'+(date||currentDate));}
+async function loadDay(date){
+  try{
+    const r=await storage.get(dayKey(date||currentDate));
+    if(!r)return emptyDay();
+    const d=JSON.parse(r.value);
+    return{breakfast:d.breakfast||[],lunch:d.lunch||[],dinner:d.dinner||[],extra:d.extra||[]};
+  }catch(e){return emptyDay();}
+}
+function emptyDay(){return{breakfast:[],lunch:[],dinner:[],extra:[]};}
+async function saveDay(data,date){
+  try{
+    await storage.set(dayKey(date||currentDate),JSON.stringify(data));
+    const dot=document.getElementById('saveDot');
+    if(dot){dot.classList.add('show');setTimeout(()=>dot.classList.remove('show'),1500);}
+  }catch(e){console.error(e);}
+}
+async function loadCommonMeals(){
+  try{const r=await storage.get(pk('commonMeals'));return r?JSON.parse(r.value):[];}catch(e){return[];}
+}
+async function saveCommonMeals(list){
+  try{await storage.set(pk('commonMeals'),JSON.stringify(list));}catch(e){}
+}
+async function addToCommonMeals(item){
+  let list=await loadCommonMeals();
+  list=list.filter(m=>!(m.name===item.name&&m.quantity===item.quantity));
+  list.unshift(item);list=list.slice(0,10);
+  await saveCommonMeals(list);renderCommonMeals();
+}
+
+// ── Goals ──────────────────────────────────────────────────
+function loadGoals(){
+  try{const v=localStorage.getItem(pk('goals'));return v?JSON.parse(v):null;}catch(e){return null;}
+}
+function saveGoals(){
+  const cal=parseInt(document.getElementById('goalCal').value)||0;
+  const p=parseInt(document.getElementById('goalP').value)||0;
+  const c=parseInt(document.getElementById('goalC').value)||0;
+  const f=parseInt(document.getElementById('goalF').value)||0;
+  if(!cal){toast('Enter a calorie goal');return;}
+  localStorage.setItem(pk('goals'),JSON.stringify({cal,p,c,f}));
+  renderAll();toast('Goals saved!');
+}
+function loadGoalInputs(){
+  const g=loadGoals();
+  if(!g)return;
+  document.getElementById('goalCal').value=g.cal||'';
+  document.getElementById('goalP').value=g.p||'';
+  document.getElementById('goalC').value=g.c||'';
+  document.getElementById('goalF').value=g.f||'';
+}
+
+// ── Render ─────────────────────────────────────────────────
+async function renderAll(){
+  const data=await loadDay();
+  MEAL_KEYS.forEach(k=>renderSection(k,data[k]));
+  const all=MEAL_KEYS.flatMap(k=>data[k]);
+  const t=all.reduce((a,m)=>({cal:a.cal+Number(m.calories||0),p:a.p+Number(m.protein||0),c:a.c+Number(m.carbs||0),f:a.f+Number(m.fat||0)}),{cal:0,p:0,c:0,f:0});
+  document.getElementById('totCal').textContent=Math.round(t.cal);
+  document.getElementById('totP').textContent=Math.round(t.p)+'g';
+  document.getElementById('totC').textContent=Math.round(t.c)+'g';
+  document.getElementById('totF').textContent=Math.round(t.f)+'g';
+  renderGoalBars(t);
+  renderWaterSmall();
+}
+
+function renderGoalBars(t){
+  const g=loadGoals();
+  const el=document.getElementById('goalBars');
+  if(!g||!g.cal){el.innerHTML='';return;}
+  const items=[
+    {label:'Calories',got:Math.round(t.cal),goal:g.cal,cls:'cal',unit:'kcal'},
+    {label:'Protein',got:Math.round(t.p),goal:g.p,cls:'pro',unit:'g'},
+    {label:'Carbs',got:Math.round(t.c),goal:g.c,cls:'crb',unit:'g'},
+    {label:'Fat',got:Math.round(t.f),goal:g.f,cls:'fat',unit:'g'},
+  ];
+  el.innerHTML=items.filter(i=>i.goal>0).map(i=>{
+    const pct=Math.min(100,Math.round((i.got/i.goal)*100));
+    const over=i.got>i.goal;
+    return`<div class="goal-row">
+      <div class="goal-label-row"><span>${i.label}</span><span>${i.got}/${i.goal}${i.unit} <strong>${pct}%</strong></span></div>
+      <div class="pbar"><div class="pbar-fill ${i.cls}${over?' over':''}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderSection(k,items){
+  const el=document.getElementById('items-'+k);
+  const kcalEl=document.getElementById('kcal-'+k);
+  kcalEl.textContent=Math.round(items.reduce((a,m)=>a+Number(m.calories||0),0))+' kcal';
+  if(!items.length){el.innerHTML='<div class="m-empty">Nothing added yet</div>';return;}
+  el.innerHTML='';
+  items.forEach((item,idx)=>{
+    const div=document.createElement('div');
+    div.className='m-item';
+    div.innerHTML=`<div style="flex:1;min-width:0"><div class="m-iname">${esc(item.name)}</div><div class="m-imeta">${item.time?item.time+' · ':''}${esc(item.quantity)} · P ${item.protein}g · C ${item.carbs}g · F ${item.fat}g</div></div><div style="display:flex;align-items:center;flex-shrink:0"><div class="m-ical">${item.calories} kcal</div><button class="del" onclick="deleteItem('${k}',${idx})">✕</button></div>`;
+    el.appendChild(div);
+  });
+}
+
+async function renderCommonMeals(){
+  const list=await loadCommonMeals();
+  const el=document.getElementById('commonList');
+  if(!list.length){el.innerHTML='<span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span>';return;}
+  el.innerHTML='';
+  list.forEach(item=>{
+    const c=document.createElement('div');c.className='chip';
+    c.textContent=`${item.name} — ${item.calories} kcal`;
+    c.onclick=()=>quickAdd(item);el.appendChild(c);
+  });
+}
+
+// ── Water (small, in Today card) ───────────────────────────
+function waterKey(date){return pk('water:'+(date||currentDate));}
+function loadWaterCount(date){
+  try{const v=localStorage.getItem(waterKey(date));return v?parseInt(v):0;}catch(e){return 0;}
+}
+function saveWaterCount(n){localStorage.setItem(waterKey(),String(Math.max(0,Math.min(12,n))));}
+
+function renderWaterSmall(){
+  const n=loadWaterCount();
+  const el=document.getElementById('waterGlassesSmall');
+  el.innerHTML='';
+  for(let i=0;i<8;i++){
+    const s=document.createElement('span');
+    s.className='wg'+(i<n?' filled':'');
+    s.textContent='💧';
+    s.onclick=()=>{saveWaterCount(i<n?i:i+1);renderWaterSmall();renderWaterBig();};
+    el.appendChild(s);
+  }
+  document.getElementById('waterCountSmall').textContent=n+'/8';
+}
+
+// ── Water (big, in Body tab) ───────────────────────────────
+function renderWaterBig(){
+  const n=loadWaterCount();
+  const el=document.getElementById('waterGlassesBig');
+  el.innerHTML='';
+  for(let i=0;i<8;i++){
+    const s=document.createElement('span');
+    s.className='wg-big'+(i<n?' filled':'');
+    s.textContent='💧';
+    s.onclick=()=>{saveWaterCount(i<n?i:i+1);renderWaterBig();renderWaterSmall();};
+    el.appendChild(s);
+  }
+  document.getElementById('waterInfo').textContent=n+' glasses · '+(n*250)+' ml';
+}
+
+function addWater(){const n=loadWaterCount();saveWaterCount(n+1);renderWaterBig();renderWaterSmall();}
+function removeWater(){const n=loadWaterCount();saveWaterCount(n-1);renderWaterBig();renderWaterSmall();}
+
+// ── Weight ─────────────────────────────────────────────────
+function loadWeightLog(){
+  try{const v=localStorage.getItem(pk('weight_log'));return v?JSON.parse(v):[];}catch(e){return[];}
+}
+function saveWeightLog(log){localStorage.setItem(pk('weight_log'),JSON.stringify(log));}
+
+function saveWeight(){
+  const val=parseFloat(document.getElementById('weightInput').value);
+  if(!val||val<20||val>400){toast('Enter a valid weight (20–400 kg)');return;}
+  const log=loadWeightLog();
+  const today=todayStr();
+  const existing=log.findIndex(e=>e.date===today);
+  if(existing>=0)log[existing].kg=val;
+  else log.unshift({date:today,kg:val});
+  saveWeightLog(log.slice(0,60));
+  document.getElementById('weightInput').value='';
+  renderWeightHist();toast('Weight saved!');
+}
+
+function renderWeightHist(){
+  const log=loadWeightLog();
+  const tbody=document.getElementById('weightHistBody');
+  if(!log.length){tbody.innerHTML='<tr><td colspan="3" style="color:var(--muted);font-size:13px;text-align:center;padding:12px 0;">No entries yet</td></tr>';document.getElementById('weightChartWrap').style.display='none';return;}
+  tbody.innerHTML=log.slice(0,10).map((e,i)=>`<tr><td style="color:var(--muted);">${fmtDate(e.date)}</td><td>${e.kg} kg</td><td><button onclick="deleteWeight(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;">✕</button></td></tr>`).join('');
+  if(log.length>=2){
+    document.getElementById('weightChartWrap').style.display='block';
+    renderWeightChart(log.slice(0,15).reverse());
+  }else{document.getElementById('weightChartWrap').style.display='none';}
+}
+
+window.deleteWeight=function(i){
+  const log=loadWeightLog();log.splice(i,1);saveWeightLog(log);renderWeightHist();
+};
+
+function renderWeightChart(log){
+  const ctx=document.getElementById('weightChart').getContext('2d');
+  if(weightChartInst)weightChartInst.destroy();
+  weightChartInst=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:log.map(e=>fmtDate(e.date)),
+      datasets:[{label:'Weight (kg)',data:log.map(e=>e.kg),borderColor:'#7b8ef7',backgroundColor:'#7b8ef722',borderWidth:2,pointRadius:4,pointBackgroundColor:'#7b8ef7',tension:.3,fill:true}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#2a2e38'},ticks:{color:'#8b8f99',font:{size:10}}},y:{grid:{color:'#2a2e38'},ticks:{color:'#8b8f99',font:{size:10}}}}}
+  });
+}
+
+// ── History ────────────────────────────────────────────────
+function setPeriod(n){
+  histPeriod=n;
+  document.getElementById('period-7').classList.toggle('active',n===7);
+  document.getElementById('period-30').classList.toggle('active',n===30);
+  loadHistory(n);
+}
+
+async function loadHistory(days){
+  const rows=[];
+  for(let i=0;i<days;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const data=await loadDay(ds);
+    const all=MEAL_KEYS.flatMap(k=>data[k]);
+    const t=all.reduce((a,m)=>({cal:a.cal+Number(m.calories||0),p:a.p+Number(m.protein||0),c:a.c+Number(m.carbs||0),f:a.f+Number(m.fat||0)}),{cal:0,p:0,c:0,f:0});
+    rows.push({date:ds,cal:Math.round(t.cal),p:Math.round(t.p),c:Math.round(t.c),f:Math.round(t.f)});
+  }
+  renderHistChart(rows.slice().reverse());
+  renderHistTable(rows);
+}
+
+function renderHistChart(rows){
+  const ctx=document.getElementById('histChart').getContext('2d');
+  if(histChartInst)histChartInst.destroy();
+  const g=loadGoals();
+  const datasets=[{
+    label:'Calories',data:rows.map(r=>r.cal||null),
+    backgroundColor:'#e8a33d55',borderColor:'#e8a33d',borderWidth:2,
+    borderRadius:4,type:'bar'
+  }];
+  if(g&&g.cal){datasets.push({label:'Goal',data:rows.map(()=>g.cal),type:'line',borderColor:'#5fb878',borderDash:[5,4],pointRadius:0,borderWidth:2,fill:false});}
+  histChartInst=new Chart(ctx,{
+    data:{labels:rows.map(r=>fmtDate(r.date)),datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw} kcal`}}},scales:{x:{grid:{color:'#2a2e38'},ticks:{color:'#8b8f99',font:{size:10},maxRotation:45}},y:{grid:{color:'#2a2e38'},ticks:{color:'#8b8f99',font:{size:10}},beginAtZero:true}}}
+  });
+}
+
+function renderHistTable(rows){
+  const today=todayStr();
+  const g=loadGoals();
+  document.getElementById('histTableBody').innerHTML=rows.map(r=>{
+    const isToday=r.date===today;
+    const over=g&&g.cal&&r.cal>g.cal;
+    return`<tr class="${isToday?'today-row':''}"><td>${isToday?'Today':fmtDate(r.date)}</td><td class="kcal-cell" style="${over?'color:var(--danger)':''}>${r.cal}</td><td>${r.p}g</td><td>${r.c}g</td><td>${r.f}g</td></tr>`;
+  }).join('');
+}
+
+// ── Export CSV ─────────────────────────────────────────────
+async function exportCSV(days){
+  toast('Preparing export…');
+  const rows=[['Date','Meal','Food','Quantity','Calories','Protein(g)','Carbs(g)','Fat(g)']];
+  for(let i=0;i<days;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const data=await loadDay(ds);
+    MEAL_KEYS.forEach(k=>{
+      (data[k]||[]).forEach(item=>{
+        rows.push([ds,MEALS[k].label,item.name,item.quantity,item.calories,item.protein,item.carbs,item.fat]);
+      });
+    });
+  }
+  const csv=rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`calorie-tracker-${todayStr()}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+  toast('CSV downloaded!');
+}
+
+// ── Notifications / Reminders ──────────────────────────────
+function loadReminderSettings(){
+  try{const v=localStorage.getItem('reminders');return v?JSON.parse(v):{};}catch(e){return{};}
+}
+function loadReminderInputs(){
+  const r=loadReminderSettings();
+  document.getElementById('notifToggle').checked=!!r.enabled;
+  if(r.breakfast)document.getElementById('remBreakfast').value=r.breakfast;
+  if(r.lunch)document.getElementById('remLunch').value=r.lunch;
+  if(r.dinner)document.getElementById('remDinner').value=r.dinner;
+  updateNotifStatus(!!r.enabled);
+}
+function updateNotifStatus(enabled){
+  const el=document.getElementById('notifStatus');
+  if(!('Notification' in window)){el.textContent='Notifications not supported on this browser.';return;}
+  if(!enabled){el.textContent='Reminders disabled.';return;}
+  const perm=Notification.permission;
+  if(perm==='granted')el.textContent='✓ Reminders active — fires when app is open.';
+  else if(perm==='denied')el.textContent='⚠️ Permission blocked. Allow in browser settings.';
+  else el.textContent='Permission not yet granted.';
+}
+async function toggleNotifications(){
+  const enabled=document.getElementById('notifToggle').checked;
+  if(enabled&&'Notification' in window&&Notification.permission!=='granted'){
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){document.getElementById('notifToggle').checked=false;updateNotifStatus(false);return;}
+  }
+  const r=loadReminderSettings();r.enabled=enabled;localStorage.setItem('reminders',JSON.stringify(r));
+  updateNotifStatus(enabled);scheduleReminders();
+}
+function saveReminders(){
+  const r=loadReminderSettings();
+  r.breakfast=document.getElementById('remBreakfast').value;
+  r.lunch=document.getElementById('remLunch').value;
+  r.dinner=document.getElementById('remDinner').value;
+  localStorage.setItem('reminders',JSON.stringify(r));
+  scheduleReminders();toast('Reminders saved!');
+}
+function scheduleReminders(){
+  _reminderTimers.forEach(clearTimeout);_reminderTimers=[];
+  const r=loadReminderSettings();
+  if(!r.enabled||!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=new Date();
+  [{time:r.breakfast||'08:00',meal:'breakfast',label:'Breakfast'},{time:r.lunch||'13:00',meal:'lunch',label:'Lunch'},{time:r.dinner||'20:00',meal:'dinner',label:'Dinner'}].forEach(async({time,meal,label})=>{
+    const[h,m]=time.split(':').map(Number);
+    const fire=new Date(now);fire.setHours(h,m,0,0);
+    if(fire<=now)return;
+    const delay=fire-now;
+    _reminderTimers.push(setTimeout(async()=>{
+      const data=await loadDay();
+      if(!data[meal].length)new Notification('Time to log '+label+' 🍽️',{body:'Open Calorie Tracker to log your '+label.toLowerCase()+'.',icon:'./icon.svg',tag:'rem-'+meal});
+    },delay));
+  });
+}
+
 // ── Delete ─────────────────────────────────────────────────
-window.deleteItem = async function(k, idx) {
-  const data = await loadDay();
-  data[k].splice(idx, 1);
-  await saveDay(data);
-  renderAll();
+window.deleteItem=async function(k,idx){
+  const data=await loadDay();data[k].splice(idx,1);await saveDay(data);renderAll();
 };
 
 // ── Quick Add ──────────────────────────────────────────────
-async function quickAdd(item) {
-  const target = addingToMeal || 'extra';
-  const data = await loadDay();
-  data[target].push({...item, time: timeNow()});
-  await saveDay(data);
-  renderAll();
-  if (addingToMeal) { closeAdd(); }
-  toast(`Added to ${MEALS[target].label}`);
+async function quickAdd(item){
+  const target=addingToMeal||'extra';
+  const data=await loadDay();data[target].push({...item,time:timeNow()});
+  await saveDay(data);renderAll();
+  if(addingToMeal)closeAdd();
+  toast('Added to '+MEALS[target].label);
 }
 
 // ── Drawer ─────────────────────────────────────────────────
-function openAdd(mealKey) {
-  addingToMeal = mealKey;
-  const m = MEALS[mealKey];
-  document.getElementById('drawerTitle').textContent = 'Add to ' + m.label;
-  document.getElementById('drawerDot').style.background = m.color;
+function openAdd(mealKey){
+  addingToMeal=mealKey;
+  const m=MEALS[mealKey];
+  document.getElementById('drawerTitle').textContent='Add to '+m.label;
+  document.getElementById('drawerDot').style.background=m.color;
   document.getElementById('overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
-  // Reset state
-  document.getElementById('searchInput').value = '';
-  document.getElementById('searchResults').innerHTML = '<div class="es">Search 260+ Indian &amp; global foods</div>';
-  document.getElementById('selPanel').style.display = 'none';
-  selectedFood = null;
-  switchTab('search');
-  document.getElementById('searchInput').focus();
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchResults').innerHTML='<div class="es">Search 260+ Indian &amp; global foods</div>';
+  document.getElementById('selPanel').style.display='none';
+  selectedFood=null;switchTab('search');
+  setTimeout(()=>document.getElementById('searchInput').focus(),100);
 }
-
-function closeAdd() {
+function closeAdd(){
   document.getElementById('overlay').classList.remove('open');
   document.getElementById('drawer').classList.remove('open');
-  addingToMeal = null;
+  addingToMeal=null;
 }
-
-// ── Tab Switch ─────────────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('panel-search').style.display = tab === 'search' ? 'block' : 'none';
-  document.getElementById('panel-manual').style.display = tab === 'manual' ? 'block' : 'none';
-  document.getElementById('t-search').className = 'tab' + (tab === 'search' ? ' active' : '');
-  document.getElementById('t-manual').className = 'tab' + (tab === 'manual' ? ' active' : '');
+function switchTab(tab){
+  document.getElementById('panel-search').style.display=tab==='search'?'block':'none';
+  document.getElementById('panel-manual').style.display=tab==='manual'?'block':'none';
+  document.getElementById('t-search').className='tab'+(tab==='search'?' active':'');
+  document.getElementById('t-manual').className='tab'+(tab==='manual'?' active':'');
 }
 
 // ── Search ─────────────────────────────────────────────────
-document.getElementById('searchInput').addEventListener('input', () => {
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const el = document.getElementById('searchResults');
-  if (!q) { el.innerHTML = '<div class="es">Search 260+ Indian &amp; global foods</div>'; return; }
-  const hits = FOODS.filter(f => f.name.toLowerCase().includes(q)).slice(0, 10);
-  if (!hits.length) { el.innerHTML = '<div class="es">No match — try Manual tab</div>'; return; }
-  el.innerHTML = '';
-  hits.forEach(food => {
-    const div = document.createElement('div');
-    div.className = 'ri';
-    div.innerHTML = `
-      <div>
-        <div class="rname">${esc(food.name)}<span class="tag">${food.cat}</span></div>
-        <div class="rmeta">${esc(food.unit)}</div>
-      </div>
-      <div class="rcal">${food.cal} kcal</div>`;
-    div.addEventListener('click', () => selectFood(food, div));
-    el.appendChild(div);
+document.getElementById('searchInput').addEventListener('input',()=>{
+  const q=document.getElementById('searchInput').value.trim().toLowerCase();
+  const el=document.getElementById('searchResults');
+  if(!q){el.innerHTML='<div class="es">Search 260+ Indian &amp; global foods</div>';return;}
+  const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)).slice(0,10);
+  if(!hits.length){el.innerHTML='<div class="es">No match — try Manual tab</div>';return;}
+  el.innerHTML='';
+  hits.forEach(food=>{
+    const div=document.createElement('div');div.className='ri';
+    div.innerHTML=`<div><div class="rname">${esc(food.name)}<span class="tag">${food.cat}</span></div><div class="rmeta">${esc(food.unit)}</div></div><div class="rcal">${food.cal} kcal</div>`;
+    div.addEventListener('click',()=>selectFood(food,div));el.appendChild(div);
   });
 });
-
-function selectFood(food, el) {
-  document.getElementById('searchResults').querySelectorAll('.ri').forEach(d => d.classList.remove('sel'));
-  el.classList.add('sel');
-  selectedFood = food;
-  document.getElementById('selName').textContent = food.name;
-  document.getElementById('selMeta').textContent = `Per ${food.unit}: ${food.cal} kcal · P ${food.p}g · C ${food.c}g · F ${food.f}g`;
-  document.getElementById('selUnit').textContent = food.unit;
-  document.getElementById('qtyInput').value = 1;
-  updateSelTotal();
-  document.getElementById('selPanel').style.display = 'block';
+function selectFood(food,el){
+  document.getElementById('searchResults').querySelectorAll('.ri').forEach(d=>d.classList.remove('sel'));
+  el.classList.add('sel');selectedFood=food;
+  document.getElementById('selName').textContent=food.name;
+  document.getElementById('selMeta').textContent=`Per ${food.unit}: ${food.cal} kcal · P ${food.p}g · C ${food.c}g · F ${food.f}g`;
+  document.getElementById('selUnit').textContent=food.unit;
+  document.getElementById('qtyInput').value=1;updateSelTotal();
+  document.getElementById('selPanel').style.display='block';
 }
-
-document.getElementById('qtyInput').addEventListener('input', updateSelTotal);
-
-function updateSelTotal() {
-  if (!selectedFood) return;
-  const qty = parseFloat(document.getElementById('qtyInput').value) || 0;
-  document.getElementById('selTotalCal').textContent = `${Math.round(selectedFood.cal * qty)} kcal`;
-  document.getElementById('selTotalMac').textContent = `P ${r1(selectedFood.p*qty)}g · C ${r1(selectedFood.c*qty)}g · F ${r1(selectedFood.f*qty)}g`;
+document.getElementById('qtyInput').addEventListener('input',updateSelTotal);
+function updateSelTotal(){
+  if(!selectedFood)return;
+  const qty=parseFloat(document.getElementById('qtyInput').value)||0;
+  document.getElementById('selTotalCal').textContent=`${Math.round(selectedFood.cal*qty)} kcal`;
+  document.getElementById('selTotalMac').textContent=`P ${r1(selectedFood.p*qty)}g · C ${r1(selectedFood.c*qty)}g · F ${r1(selectedFood.f*qty)}g`;
 }
-
-document.getElementById('addFoodBtn').addEventListener('click', async () => {
-  if (!selectedFood || !addingToMeal) return;
-  const qty = parseFloat(document.getElementById('qtyInput').value) || 1;
-  const item = {
-    name: selectedFood.name,
-    quantity: qty === 1 ? selectedFood.unit : `${qty} × ${selectedFood.unit}`,
-    calories: Math.round(selectedFood.cal * qty),
-    protein:  r1(selectedFood.p * qty),
-    carbs:    r1(selectedFood.c * qty),
-    fat:      r1(selectedFood.f * qty),
-    time: timeNow()
-  };
-  const data = await loadDay();
-  data[addingToMeal].push(item);
-  await saveDay(data);
-  await addToCommonMeals({...item});
-  renderAll();
-  toast(`Added to ${MEALS[addingToMeal].label}`);
-  closeAdd();
+document.getElementById('addFoodBtn').addEventListener('click',async()=>{
+  if(!selectedFood||!addingToMeal)return;
+  const qty=parseFloat(document.getElementById('qtyInput').value)||1;
+  const item={name:selectedFood.name,quantity:qty===1?selectedFood.unit:`${qty} × ${selectedFood.unit}`,calories:Math.round(selectedFood.cal*qty),protein:r1(selectedFood.p*qty),carbs:r1(selectedFood.c*qty),fat:r1(selectedFood.f*qty),time:timeNow()};
+  const data=await loadDay();data[addingToMeal].push(item);await saveDay(data);
+  await addToCommonMeals({...item});renderAll();toast('Added to '+MEALS[addingToMeal].label);closeAdd();
 });
 
 // ── Manual Entry ───────────────────────────────────────────
-document.getElementById('manAddBtn').addEventListener('click', async () => {
-  if (!addingToMeal) return;
-  const name = document.getElementById('manName').value.trim();
-  const cal  = parseFloat(document.getElementById('manCal').value) || 0;
-  const p    = parseFloat(document.getElementById('manP').value)   || 0;
-  const c    = parseFloat(document.getElementById('manC').value)   || 0;
-  const f    = parseFloat(document.getElementById('manF').value)   || 0;
-  const errEl = document.getElementById('manErr');
-  if (!name) { errEl.textContent = 'Enter a food name.'; errEl.style.display = 'block'; return; }
-  if (!cal)  { errEl.textContent = 'Enter calories.';    errEl.style.display = 'block'; return; }
-  errEl.style.display = 'none';
-  const item = {name, quantity:'custom', calories:Math.round(cal), protein:p, carbs:c, fat:f, time:timeNow()};
-  const data = await loadDay();
-  data[addingToMeal].push(item);
-  await saveDay(data);
-  await addToCommonMeals({...item});
-  renderAll();
-  toast(`Added to ${MEALS[addingToMeal].label}`);
-  ['manName','manCal','manP','manC','manF'].forEach(id => document.getElementById(id).value = '');
+document.getElementById('manAddBtn').addEventListener('click',async()=>{
+  if(!addingToMeal)return;
+  const name=document.getElementById('manName').value.trim();
+  const cal=parseFloat(document.getElementById('manCal').value)||0;
+  const p=parseFloat(document.getElementById('manP').value)||0;
+  const c=parseFloat(document.getElementById('manC').value)||0;
+  const f=parseFloat(document.getElementById('manF').value)||0;
+  const errEl=document.getElementById('manErr');
+  if(!name){errEl.textContent='Enter a food name.';errEl.style.display='block';return;}
+  if(!cal){errEl.textContent='Enter calories.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  const item={name,quantity:'custom',calories:Math.round(cal),protein:p,carbs:c,fat:f,time:timeNow()};
+  const data=await loadDay();data[addingToMeal].push(item);await saveDay(data);
+  await addToCommonMeals({...item});renderAll();toast('Added to '+MEALS[addingToMeal].label);
+  ['manName','manCal','manP','manC','manF'].forEach(id=>document.getElementById(id).value='');
   closeAdd();
 });
 
 // ── Reset ──────────────────────────────────────────────────
-document.getElementById('resetDayBtn').addEventListener('click', async () => {
-  if (currentDate !== todayStr()) { toast("Can't clear a past day"); return; }
-  if (confirm('Clear all meals for today?')) {
-    await saveDay(emptyDay());
-    renderAll();
-  }
+document.getElementById('resetDayBtn').addEventListener('click',async()=>{
+  if(currentDate!==todayStr()){toast("Can't clear a past day");return;}
+  if(confirm('Clear all meals for today?')){await saveDay(emptyDay());renderAll();}
 });
 
 // ── Toast ──────────────────────────────────────────────────
 let toastTimer;
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
 }
 
 // ── Init ───────────────────────────────────────────────────
-updateDateUI();
-renderAll();
-renderCommonMeals();
+(function init(){
+  const saved=localStorage.getItem('activeProfile');
+  if(saved)activeProfile=saved;
+  document.getElementById('profileName').textContent=getActiveProfileName();
+  updateDateUI();renderAll();renderCommonMeals();
+  scheduleReminders();
+})();
 
-// ── PWA: Service Worker & Install Prompt ───────────────────
-let deferredInstallPrompt = null;
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW:', e));
-  });
-}
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  if (!sessionStorage.getItem('installDismissed')) {
-    setTimeout(() => { document.getElementById('installBanner').style.display = 'block'; }, 2000);
-  }
+// ── PWA ────────────────────────────────────────────────────
+let deferredInstallPrompt=null;
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW:',e)));}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredInstallPrompt=e;
+  if(!sessionStorage.getItem('installDismissed'))setTimeout(()=>{document.getElementById('installBanner').style.display='block';},2000);
 });
-
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').style.display = 'none';
-  deferredInstallPrompt = null;
-  toast('App installed! Open from home screen.');
-});
-
-async function installApp() {
-  if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
-  if (outcome === 'accepted') deferredInstallPrompt = null;
-  document.getElementById('installBanner').style.display = 'none';
-}
-
-function dismissInstall() {
-  document.getElementById('installBanner').style.display = 'none';
-  sessionStorage.setItem('installDismissed', '1');
-}
-
-// Show iOS instructions on Safari/iPhone (no beforeinstallprompt support)
-const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-const isInStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-if (isIOS && !isInStandalone && !sessionStorage.getItem('iosHintDismissed')) {
-  setTimeout(() => { document.getElementById('iosBanner').style.display = 'block'; }, 2000);
-}
-document.getElementById('iosBanner').querySelector('button').addEventListener('click', () => {
-  sessionStorage.setItem('iosHintDismissed', '1');
-});
+window.addEventListener('appinstalled',()=>{document.getElementById('installBanner').style.display='none';deferredInstallPrompt=null;toast('App installed!');});
+async function installApp(){if(!deferredInstallPrompt)return;deferredInstallPrompt.prompt();const{outcome}=await deferredInstallPrompt.userChoice;if(outcome==='accepted')deferredInstallPrompt=null;document.getElementById('installBanner').style.display='none';}
+function dismissInstall(){document.getElementById('installBanner').style.display='none';sessionStorage.setItem('installDismissed','1');}
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+if(isIOS&&!isStandalone&&!sessionStorage.getItem('iosHintDismissed'))setTimeout(()=>{document.getElementById('iosBanner').style.display='block';},2000);
+document.getElementById('iosBannerClose').addEventListener('click',()=>{document.getElementById('iosBanner').style.display='none';sessionStorage.setItem('iosHintDismissed','1');});
 </script>
 </body>
 </html>
