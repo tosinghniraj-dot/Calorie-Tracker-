@@ -1,0 +1,21 @@
+{
+  "name": "Calorie Tracker",
+  "short_name": "Calories",
+  "description": "Day-wise meal log — Breakfast, Lunch, Dinner & Snacks. 260+ Indian foods.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1115",
+  "theme_color": "#5fb878",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "lifestyle"],
+  "lang": "en-IN"
+}
