@@ -17,15 +17,14 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const network = fetch(e.request).then(res => {
-        if (res && res.status === 200 && e.request.method === 'GET') {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-        }
-        return res;
-      }).catch(() => null);
-      return cached || network || caches.match('./index.html');
-    })
+    fetch(e.request).then(res => {
+      if (res && res.status === 200 && e.request.method === 'GET') {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+      }
+      return res;
+    }).catch(() =>
+      caches.match(e.request).then(cached => cached || caches.match('./index.html'))
+    )
   );
 });
