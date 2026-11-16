@@ -234,10 +234,13 @@ input[type=time]{color-scheme:dark;}
     <button class="nav-btn" id="nextDay" onclick="changeDay(1)" disabled>›</button>
   </div>
 
-  <!-- Fasting Mode quick-access button (hidden when fast is active) -->
-  <div id="fastingModeBtn" style="margin:6px 0 2px;">
-    <button onclick="openFastingDrawer()" style="width:100%;background:var(--card);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:13px;padding:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-      🕯️ <span>Start Fasting Day</span>
+  <!-- Quick-mode buttons row -->
+  <div id="quickModeBtns" style="display:flex;gap:8px;margin:6px 0 2px;">
+    <button id="fastingModeBtn" onclick="openFastingDrawer()" style="flex:1;background:var(--card);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:12px;padding:9px 6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+      🕯️ <span>Fasting Day</span>
+    </button>
+    <button id="fullDayModeBtn" onclick="toggleFullDayMode()" style="flex:1;background:var(--card);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:12px;padding:9px 6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+      📋 <span>Full Day Log</span>
     </button>
   </div>
 
@@ -302,6 +305,22 @@ input[type=time]{color-scheme:dark;}
     </div>
     <div class="sel-total" style="margin-top:8px;"><span class="tcal" id="fqCal">0 kcal</span><span class="tmac" id="fqMac"></span></div>
     <button class="btn-p" onclick="confirmFastingFood()">Add to Today</button>
+  </div>
+
+  <!-- Full Day Log section (shown when Full Day mode is active) -->
+  <div id="fullDaySection" style="display:none;">
+    <div class="meal-sec" style="border-left:3px solid var(--accent2);">
+      <div class="meal-head">
+        <span class="meal-icon">📋</span>
+        <span class="meal-title">Today's Food Log</span>
+        <span class="meal-kcal" id="kcal-fullday">0 kcal</span>
+        <button class="add-btn" onclick="openAdd('fullday')">+ Add</button>
+      </div>
+      <div class="meal-items" id="items-fullday"><div class="m-empty">Nothing added yet</div></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin:4px 0 8px;">
+      Log all meals together — tap <b style="color:var(--accent2);">+ Add</b> as many times as needed
+    </div>
   </div>
 
   <div id="regularMeals">
@@ -1042,7 +1061,19 @@ let newComboItems=[];
 let histChart=null,weightChart=null;
 
 // ── Storage helpers ───────────────────────────────────────────────────────────
-function getDayData(d){return JSON.parse(localStorage.getItem(pk('day:'+d))||'{"breakfast":[],"lunch":[],"dinner":[],"extra":[]}');}
+function getDayData(d){const def='{"breakfast":[],"lunch":[],"dinner":[],"extra":[],"fullday":[]}';const v=JSON.parse(localStorage.getItem(pk('day:'+d))||def);if(!v.fullday)v.fullday=[];return v;}
+function getFullDayMode(){return localStorage.getItem(pk('fullday_mode:'+currentDate))==='1';}
+function setFullDayMode(on){localStorage.setItem(pk('fullday_mode:'+currentDate),on?'1':'0');renderFullDayModeUI();}
+function renderFullDayModeUI(){
+  const on=getFullDayMode();
+  const rm=document.getElementById('regularMeals');
+  const fd=document.getElementById('fullDaySection');
+  const btn=document.getElementById('fullDayModeBtn');
+  if(rm)rm.style.display=on?'none':'block';
+  if(fd)fd.style.display=on?'block':'none';
+  if(btn){btn.style.borderColor=on?'var(--accent2)':'var(--border)';btn.style.color=on?'var(--accent2)':'var(--muted)';btn.querySelector('span').textContent=on?'Full Day: ON':'Full Day Log';}
+}
+function toggleFullDayMode(){setFullDayMode(!getFullDayMode());renderMeals();renderTotals();}
 function saveDayData(d,data){localStorage.setItem(pk('day:'+d),JSON.stringify(data));showSaveDot();}
 function getGoals(){return JSON.parse(localStorage.getItem(pk('goals'))||'{"cal":2000,"p":50,"c":250,"f":70}');}
 function getWater(d){return parseInt(localStorage.getItem(pk('water:'+(d||currentDate)))||'0',10);}
@@ -1127,16 +1158,17 @@ function renderDay(){
   document.getElementById('dateStr').textContent=fmt(currentDate);
   document.getElementById('todayBadge').textContent=currentDate===t?'TODAY · tap to change date':'tap to change date';
   document.getElementById('nextDay').disabled=currentDate>=t;
-  renderMeals();renderTotals();renderWaterSmall();renderFastingBanner();
+  renderFullDayModeUI();renderMeals();renderTotals();renderWaterSmall();renderFastingBanner();
   renderSuggestions();renderCalBalance();
 }
 function fmt(d){const o=new Date(d+'T00:00:00');return o.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}
 
 function renderMeals(){
-  ['breakfast','lunch','dinner','extra'].forEach(meal=>{
-    const data=getDayData(currentDate)[meal]||[];
+  ['breakfast','lunch','dinner','extra','fullday'].forEach(meal=>{
     const el=document.getElementById('items-'+meal);
     const kcalEl=document.getElementById('kcal-'+meal);
+    if(!el||!kcalEl)return;
+    const data=getDayData(currentDate)[meal]||[];
     const kcal=data.reduce((s,i)=>s+i.cal,0);
     kcalEl.textContent=kcal+' kcal';
     if(!data.length){el.innerHTML='<div class="m-empty">Nothing added yet</div>';return;}
@@ -1147,7 +1179,7 @@ function renderMeals(){
 function renderTotals(){
   const data=getDayData(currentDate);
   let cal=0,p=0,c=0,f=0,s=0;
-  ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;p+=(i.p||0);c+=(i.c||0);f+=(i.f||0);s+=(i.s||0);}));
+  ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;p+=(i.p||0);c+=(i.c||0);f+=(i.f||0);s+=(i.s||0);}));
   document.getElementById('totCal').textContent=Math.round(cal);
   document.getElementById('totP').textContent=Math.round(p)+'g';
   document.getElementById('totC').textContent=Math.round(c)+'g';
@@ -1193,8 +1225,8 @@ function renderFastingBanner(){
   const rm=document.getElementById('regularMeals');
   const ff=document.getElementById('fastingFoodsSection');
   banner.classList.toggle('active',f.enabled);
-  const fmBtn=document.getElementById('fastingModeBtn');
-  if(fmBtn) fmBtn.style.display=f.enabled?'none':'block';
+  const qRow=document.getElementById('quickModeBtns');
+  if(qRow) qRow.style.display=f.enabled?'none':'flex';
   if(f.enabled){
     const ft=FASTING_TYPES.find(x=>x.id===f.type)||FASTING_TYPES[0];
     document.getElementById('fastingTitle').textContent=ft.label;
@@ -1205,6 +1237,8 @@ function renderFastingBanner(){
     }else{
       document.getElementById('ifTimer').style.display='none';
     }
+    const fd=document.getElementById('fullDaySection');
+    if(fd)fd.style.display='none';
     if(f.type==='dry'){
       rm.style.display='none';ff.style.display='none';
       document.getElementById('fastingSub').textContent='Nirjala fast — no food or water. Stay strong!';
@@ -1224,7 +1258,10 @@ function renderFastingBanner(){
       renderFastingFoods(ft.allowed||[]);
     }
   }else{
-    rm.style.display='';ff.style.display='none';
+    rm.style.display=getFullDayMode()?'none':'';
+    const fd=document.getElementById('fullDaySection');
+    if(fd)fd.style.display=getFullDayMode()?'block':'none';
+    ff.style.display='none';
   }
 }
 
@@ -1328,8 +1365,8 @@ function toggleFasting(en){
 }
 
 // ── Add food drawer ───────────────────────────────────────────────────────────
-const mealColors={'breakfast':'#e8a33d','lunch':'#5fb878','dinner':'#7b8ef7','extra':'#e06cb8'};
-const mealLabels={'breakfast':'Breakfast','lunch':'Lunch','dinner':'Dinner','extra':'Snacks/Extra'};
+const mealColors={'breakfast':'#e8a33d','lunch':'#5fb878','dinner':'#7b8ef7','extra':'#e06cb8','fullday':'#e8a33d'};
+const mealLabels={'breakfast':'Breakfast','lunch':'Lunch','dinner':'Dinner','extra':'Snacks/Extra','fullday':'Full Day Log'};
 
 function openAdd(meal){
   currentMeal=meal;
@@ -1523,7 +1560,7 @@ function setPeriod(n){
 
 function getTodaySugar(){
   const data=getDayData(currentDate);let s=0;
-  ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>s+=(i.s||0)));
+  ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(i=>s+=(i.s||0)));
   return Math.round(s);
 }
 function renderHistory(){
@@ -1537,7 +1574,7 @@ function renderHistory(){
   const rows=days.map(d=>{
     const data=getDayData(d);
     let cal=0,p=0,c=0,f=0;
-    ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;p+=(i.p||0);c+=(i.c||0);f+=(i.f||0);}));
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;p+=(i.p||0);c+=(i.c||0);f+=(i.f||0);}));
     return{d,cal,p,c,f};
   });
   const labels=rows.map(r=>r.d.slice(5));
@@ -1812,7 +1849,7 @@ function exportCSV(){
   const t=today();const rows=[];
   for(let i=89;i>=0;i--){const d=new Date(t);d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);
     const data=getDayData(ds);
-    ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(item=>rows.push(`${ds},${m},${item.name},${item.cal},${item.p||0},${item.c||0},${item.f||0},${item.s||0}`)));
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(item=>rows.push(`${ds},${m},${item.name},${item.cal},${item.p||0},${item.c||0},${item.f||0},${item.s||0}`)));
   }
   csv+=rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv'});
@@ -1824,7 +1861,7 @@ function exportCSV(){
 function renderSuggestions(){
   const data=getDayData(currentDate);
   let cal=0,s=0,f=0;
-  ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;s+=(i.s||0);f+=(i.f||0);}));
+  ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;s+=(i.s||0);f+=(i.f||0);}));
   const water=getWater(currentDate);
   const g=getGoals();
   const isToday=currentDate===today();
@@ -2023,7 +2060,7 @@ function renderHealthReport(){
   const nets=days.map(d=>{
     const data=getDayData(d);
     let cal=0;
-    ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>cal+=i.cal));
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(i=>cal+=i.cal));
     return cal>0?Math.round(cal-calGoal):null;
   });
   const labels=days.map(d=>d.slice(5));
@@ -2087,7 +2124,7 @@ function renderHealthIndicators(totalExcess,totalDeficit,net){
   for(let i=29;i>=0;i--){const d=new Date(t);d.setDate(d.getDate()-i);days30.push(d.toISOString().slice(0,10));}
   const daysWithHighSugar=days30.filter(d=>{
     const data=getDayData(d);let s=0;
-    ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>s+=(i.s||0)));
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(i=>s+=(i.s||0)));
     return s>25;
   }).length;
   if(daysWithHighSugar>10){
