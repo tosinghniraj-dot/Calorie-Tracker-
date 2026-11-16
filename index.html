@@ -265,10 +265,13 @@ input[type=time]{color-scheme:dark;}
       <div class="stat"><div class="v" id="totS" style="color:#e06cb8;">0g</div><div class="l">sugar</div></div>
     </div>
     <div class="goal-bars" id="goalBars"></div>
-    <div class="water-row">
-      <span class="water-label">💧 Water</span>
-      <div class="water-glasses" id="waterGlassesSmall"></div>
-      <span class="water-count" id="waterCountSmall">0/8</span>
+    <div class="water-row" style="flex-wrap:wrap;gap:6px;">
+      <span class="water-label" style="width:100%;font-size:12px;">💧 Water intake today</span>
+      <button class="btn-sm" style="padding:7px 12px;font-size:13px;" onclick="addWater(1)">+250 ml</button>
+      <button class="btn-sm" style="padding:7px 12px;font-size:13px;" onclick="addWater(2)">+500 ml</button>
+      <button class="btn-sm" style="padding:7px 12px;font-size:13px;" onclick="addWater(4)">+1 L</button>
+      <button class="btn-sm" style="padding:7px 10px;font-size:13px;background:var(--border);color:var(--muted);" onclick="addWater(-1)" id="waterMinusBtn">−</button>
+      <span id="waterCountSmall" style="font-size:14px;font-weight:700;color:#5fb878;margin-left:4px;">0 ml</span>
     </div>
     <div style="text-align:right;margin-top:6px;font-size:11px;color:var(--muted);">
       Auto-saved<span class="save-dot" id="saveDot"></span>
@@ -533,13 +536,25 @@ input[type=time]{color-scheme:dark;}
   <div id="body-water" style="display:none;">
     <div class="card">
       <div class="card-title">Today's Water Intake</div>
-      <div class="water-big" id="waterGlassesBig"></div>
-      <div class="water-info" id="waterInfoBig">0 / 8 glasses</div>
-      <div class="water-sub">1 glass ≈ 250ml · Goal: 2 litres/day</div>
-      <div class="water-btn-row">
-        <button class="btn-sm" onclick="setWater(Math.min(getWater()+1,8))">+ Glass</button>
-        <button class="btn-sm" onclick="setWater(Math.max(getWater()-1,0))">− Glass</button>
-        <button class="btn-sm" onclick="setWater(0)">Reset</button>
+      <div id="waterInfoBig" style="font-size:36px;font-weight:800;color:#5fb878;text-align:center;margin:12px 0 4px;">0 ml</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px;" id="waterGlassesBig">0 / 12 glasses · Goal: 2–3 L/day</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <button class="btn-sm" style="padding:12px;font-size:14px;" onclick="addWater(1)">+ 250 ml<br><span style="font-size:10px;opacity:.7;">1 glass</span></button>
+        <button class="btn-sm" style="padding:12px;font-size:14px;" onclick="addWater(2)">+ 500 ml<br><span style="font-size:10px;opacity:.7;">2 glasses</span></button>
+        <button class="btn-sm" style="padding:12px;font-size:14px;" onclick="addWater(4)">+ 1 Litre<br><span style="font-size:10px;opacity:.7;">4 glasses</span></button>
+        <button class="btn-sm" style="padding:12px;font-size:14px;" onclick="addWater(8)">+ 2 Litres<br><span style="font-size:10px;opacity:.7;">8 glasses</span></button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-sm" style="flex:1;background:var(--border);color:var(--muted);" onclick="addWater(-1)">− 250 ml</button>
+        <button class="btn-sm" style="flex:1;background:var(--border);color:var(--muted);" onclick="setWater(0)">Reset</button>
+      </div>
+      <div style="margin-top:12px;">
+        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+          <div id="waterProgressBar" style="height:100%;background:linear-gradient(90deg,#5fb878,#3fa05a);border-radius:4px;transition:width .3s;width:0%"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
+          <span>0</span><span>1 L</span><span>2 L</span><span>3 L</span>
+        </div>
       </div>
     </div>
   </div>
@@ -1077,7 +1092,8 @@ function toggleFullDayMode(){setFullDayMode(!getFullDayMode());renderMeals();ren
 function saveDayData(d,data){localStorage.setItem(pk('day:'+d),JSON.stringify(data));showSaveDot();}
 function getGoals(){return JSON.parse(localStorage.getItem(pk('goals'))||'{"cal":2000,"p":50,"c":250,"f":70}');}
 function getWater(d){return parseInt(localStorage.getItem(pk('water:'+(d||currentDate)))||'0',10);}
-function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(8,n))));renderWaterSmall();renderWater();}
+function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(12,n))));renderWaterSmall();renderWater();showSaveDot();}
+function addWater(glasses){setWater(getWater()+glasses);}
 function getProfiles(){return JSON.parse(localStorage.getItem('profiles')||'["default"]');}
 function saveProfiles(p){localStorage.setItem('profiles',JSON.stringify(p));}
 function getWeightLog(){return JSON.parse(localStorage.getItem(pk('weight_log'))||'[]');}
@@ -1205,17 +1221,22 @@ function renderTotals(){
 
 function renderWaterSmall(){
   const w=getWater();
-  const el=document.getElementById('waterGlassesSmall');
-  el.innerHTML=Array(8).fill(0).map((_,i)=>`<span class="wg${i<w?' filled':''}" onclick="setWater(${i<w?i:i+1})">${i<w?'💧':'○'}</span>`).join('');
-  document.getElementById('waterCountSmall').textContent=w+'/8';
+  const ml=w*250;
+  const el=document.getElementById('waterCountSmall');
+  if(el)el.textContent=ml+' ml ('+w+' glass'+(w===1?'':'es')+')';
+  const mb=document.getElementById('waterMinusBtn');
+  if(mb)mb.disabled=w===0;
 }
 
 function renderWater(){
   const w=getWater();
-  const bg=document.getElementById('waterGlassesBig');
-  if(!bg)return;
-  bg.innerHTML=Array(8).fill(0).map((_,i)=>`<span class="wg-big${i<w?' filled':''}" onclick="setWater(${i<w?i:i+1})">${i<w?'💧':'○'}</span>`).join('');
-  document.getElementById('waterInfoBig').textContent=w+' / 8 glasses ('+Math.round(w*250)+'ml)';
+  const ml=w*250;
+  const infoEl=document.getElementById('waterInfoBig');
+  if(infoEl)infoEl.textContent=ml+' ml';
+  const glassEl=document.getElementById('waterGlassesBig');
+  if(glassEl)glassEl.textContent=w+' / 12 glasses · Goal: 2–3 L/day';
+  const bar=document.getElementById('waterProgressBar');
+  if(bar)bar.style.width=Math.min(100,Math.round(ml/3000*100))+'%';
 }
 
 // ── Fasting ───────────────────────────────────────────────────────────────────
@@ -1868,7 +1889,7 @@ function renderSuggestions(){
   const hour=new Date().getHours();
   const suggestions=[];
 
-  // Water suggestions
+  // Water suggestions (goal: 8 glasses = 2L minimum, max track 12 = 3L)
   const waterGoalGlasses=8;
   const waterGoalLiters=2;
   if(isToday){
