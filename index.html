@@ -530,6 +530,10 @@ input[type=time]{color-scheme:dark;}
       <div class="stat-row"><span class="sr-label">Overweight</span><span class="sr-val" style="color:var(--accent2);">23.0 – 27.4</span></div>
       <div class="stat-row"><span class="sr-label">Obese</span><span class="sr-val" style="color:var(--danger);">≥ 27.5</span></div>
     </div>
+    <div class="card" id="weightGoalCard" style="display:none;">
+      <div class="card-title">🎯 Goal Progress</div>
+      <div id="weightGoalBody"></div>
+    </div>
     <div class="card">
       <div class="card-title">Weight History</div>
       <div class="weight-chart-wrap"><canvas id="weightChart"></canvas></div>
@@ -775,8 +779,16 @@ input[type=time]{color-scheme:dark;}
     </div>
   </div>
   <div class="card">
-    <div class="card-title">Export Data</div>
-    <button class="btn-s" style="margin-top:0;" onclick="exportCSV()">📥 Export as CSV</button>
+    <div class="card-title">Data Management</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <button class="btn-s" style="margin-top:0;" onclick="exportCSV()">📥 CSV Export</button>
+      <button class="btn-s" style="margin-top:0;" onclick="backupData()">💾 Backup JSON</button>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;">
+      <button class="btn-s" style="margin-top:0;flex:1;background:var(--border);color:var(--text);" onclick="document.getElementById('restoreInput').click()">📂 Restore Backup</button>
+      <input type="file" id="restoreInput" accept=".json" style="display:none;" onchange="handleRestore(this)">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;">Backup saves all data for current profile as a JSON file you can restore later.</div>
   </div>
   <div style="text-align:center;padding:20px 0 8px;font-size:12px;color:var(--muted);">
     <div style="font-weight:700;color:var(--text);font-size:12px;">Calorie Tracker <span style="color:var(--accent);">v3.3</span></div>
@@ -1638,7 +1650,7 @@ function logWeight(){
   log.push({date:today(),kg:val});
   saveWeightLog(log);
   document.getElementById('weightInput').value='';
-  renderWeightChart();renderBMI();toast('Weight saved');
+  renderWeightChart();renderBMI();renderWeightGoal();toast('Weight saved');
 }
 
 function saveHeight(){const v=parseFloat(document.getElementById('heightInput').value);if(v)localStorage.setItem(pk('height'),v);}
@@ -1685,7 +1697,7 @@ function renderWeightChart(){
       const prev=arr[i+1];const diff=prev?Math.round((e.kg-prev.kg)*10)/10:0;
       return`<tr><td>${e.date.slice(5)}</td><td>${e.kg} kg</td><td style="text-align:right;color:${diff>0?'var(--danger)':diff<0?'var(--accent)':'var(--muted)'}">${diff>0?'+':''}${diff||'—'}</td></tr>`;
     }).join('');
-  renderBMI();
+  renderBMI();renderWeightGoal();
 }
 
 function renderBodyLogs(){
@@ -1693,7 +1705,7 @@ function renderBodyLogs(){
   const tb=localStorage.getItem(pk('target_bmi'))||'';
   if(document.getElementById('heightInput'))document.getElementById('heightInput').value=h;
   if(document.getElementById('targetBMI'))document.getElementById('targetBMI').value=tb;
-  renderBMI();
+  renderBMI();renderWeightGoal();
 }
 
 // ── Exercise ──────────────────────────────────────────────────────────────────
@@ -2322,8 +2334,141 @@ function init(){
   if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
   // IF timer update interval
   setInterval(()=>{const f=getFasting();if(f.enabled&&f.type==='if16')updateIFTimer();},60000);
+  // Start meal reminder checker
+  startReminderChecker();
 }
 init();
+
+// ── Feature 1: Backup & Restore ───────────────────────────────────────────────
+function backupData(){
+  const data={};
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(activeProfile==='default'){
+      if(!key.startsWith('p:'))data[key]=localStorage.getItem(key);
+    }else{
+      const prefix='p:'+activeProfile+':';
+      if(key.startsWith(prefix))data[key]=localStorage.getItem(key);
+    }
+  }
+  const payload=JSON.stringify({version:'3.3',profile:activeProfile,date:today(),data},null,2);
+  const blob=new Blob([payload],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='calorie-backup-'+activeProfile+'-'+today()+'.json';
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function handleRestore(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const bk=JSON.parse(e.target.result);
+      if(!bk.data)throw new Error('Invalid backup');
+      const count=Object.keys(bk.data).length;
+      if(!confirm('Restore '+count+' records from backup ('+bk.date+') for profile "'+bk.profile+'"?\nThis will overwrite existing data for that profile.'))return;
+      Object.entries(bk.data).forEach(([k,v])=>localStorage.setItem(k,v));
+      // switch to restored profile if different
+      if(bk.profile&&bk.profile!==activeProfile){activeProfile=bk.profile;}
+      loadGoals();loadReminders();renderProfiles();renderDay();renderRecent();
+      alert('✅ Restore complete! '+count+' records loaded.');
+    }catch(err){alert('❌ Could not restore: '+err.message);}
+  };
+  reader.readAsText(file);
+  input.value='';
+}
+
+// ── Feature 2: Meal Reminders ─────────────────────────────────────────────────
+let _remindersFired={};
+function startReminderChecker(){
+  setInterval(checkReminders,60000);
+  checkReminders();
+}
+function checkReminders(){
+  if(localStorage.getItem(pk('notif'))!=='1')return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const now=new Date();
+  const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const r=JSON.parse(localStorage.getItem(pk('reminders'))||'{}');
+  const meals=[
+    {time:r.bf||'08:00',title:'🌅 Breakfast time!',body:'Log your breakfast to stay on track.'},
+    {time:r.lu||'13:00',title:'☀️ Lunch time!',body:'Time to log your lunch.'},
+    {time:r.dn||'20:00',title:'🌙 Dinner time!',body:'Log your dinner for the day.'},
+  ];
+  const fireKey=today()+':'+hhmm;
+  meals.forEach(m=>{
+    if(m.time===hhmm&&!_remindersFired[fireKey+m.time]){
+      _remindersFired[fireKey+m.time]=1;
+      new Notification(m.title,{body:m.body,icon:'./icon.svg',badge:'./icon.svg'});
+    }
+  });
+}
+
+// ── Feature 3: Weight Goal Tracker ───────────────────────────────────────────
+function renderWeightGoal(){
+  const card=document.getElementById('weightGoalCard');
+  const body=document.getElementById('weightGoalBody');
+  if(!card||!body)return;
+  const log=getWeightLog();
+  if(!log.length){card.style.display='none';return;}
+  const height=parseFloat(localStorage.getItem(pk('height'))||'0');
+  const targetBMI=parseFloat(localStorage.getItem(pk('target_bmi'))||'0');
+  const currentKg=log[log.length-1].kg;
+  if(!height||!targetBMI){card.style.display='none';return;}
+  card.style.display='block';
+  const targetKg=+(targetBMI*(height/100)**2).toFixed(1);
+  const diff=+(targetKg-currentKg).toFixed(1);
+  const direction=diff<0?'lose':'gain';
+  const absDiff=Math.abs(diff);
+  // Avg daily calorie balance over last 14 logged days
+  const goals=JSON.parse(localStorage.getItem(pk('goals'))||'{}');
+  const goalCal=goals.cal||2000;
+  let totalBal=0,loggedDays=0;
+  for(let i=1;i<=14;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const data=getDayData(ds);
+    let cal=0;
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(it=>cal+=it.cal));
+    if(cal>0){totalBal+=cal-goalCal;loggedDays++;}
+  }
+  const avgBal=loggedDays>0?Math.round(totalBal/loggedDays):0;
+  // 7700 kcal ≈ 1 kg fat
+  const kcalNeeded=absDiff*7700;
+  let etaText='—';
+  if(absDiff<0.1){etaText='✅ At target weight!';}
+  else if(direction==='lose'&&avgBal<-50){
+    const days=Math.round(kcalNeeded/Math.abs(avgBal));
+    const eta=new Date();eta.setDate(eta.getDate()+days);
+    etaText='~'+days+' days ('+eta.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+')';
+  }else if(direction==='gain'&&avgBal>50){
+    const days=Math.round(kcalNeeded/avgBal);
+    const eta=new Date();eta.setDate(eta.getDate()+days);
+    etaText='~'+days+' days ('+eta.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})+')';
+  }else if(loggedDays<3){
+    etaText='Log more days to estimate';
+  }else{
+    etaText='Adjust diet to create a '+(direction==='lose'?'deficit':'surplus');
+  }
+  const pct=Math.min(100,Math.max(0,Math.round((1-absDiff/Math.max(absDiff,Math.abs(log[0].kg-targetKg)))*100)));
+  const col=diff<0?'var(--accent2)':'var(--accent)';
+  body.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;margin-bottom:12px;">
+      <div><div style="font-size:18px;font-weight:800;color:var(--text);">${currentKg}</div><div style="font-size:10px;color:var(--muted);">Current kg</div></div>
+      <div><div style="font-size:18px;font-weight:800;color:${col};">${targetKg}</div><div style="font-size:10px;color:var(--muted);">Target kg</div></div>
+      <div><div style="font-size:18px;font-weight:800;color:${col};">${diff>0?'+':''}${diff}</div><div style="font-size:10px;color:var(--muted);">To ${direction}</div></div>
+    </div>
+    <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:4px;">
+      <div style="height:100%;width:${pct}%;background:${col};border-radius:4px;transition:width .4s;"></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:right;">${pct}% of goal reached</div>
+    <div class="stat-row"><span class="sr-label">Avg daily balance</span><span class="sr-val" style="color:${avgBal<0?'var(--accent)':'var(--accent2)'};">${avgBal>0?'+':''}${avgBal} kcal/day</span></div>
+    <div class="stat-row"><span class="sr-label">Total to burn/gain</span><span class="sr-val">${Math.round(kcalNeeded).toLocaleString()} kcal</span></div>
+    <div class="stat-row"><span class="sr-label">Estimated ETA</span><span class="sr-val" style="color:var(--accent);">${etaText}</span></div>
+    ${loggedDays>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px;">Based on ${loggedDays} logged day${loggedDays!==1?'s':''} in last 2 weeks</div>`:''}
+  `;
+}
 </script>
 </body>
 </html>
