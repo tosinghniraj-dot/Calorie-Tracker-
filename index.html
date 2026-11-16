@@ -214,7 +214,7 @@ input[type=time]{color-scheme:dark;}
 <div class="app-header">
   <div>
     <h1>🍽️ Calorie Tracker</h1>
-    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.4</span> <span style="color:var(--muted);font-size:10px;">· 16 Nov 2026</span></div>
+    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.5</span> <span style="color:var(--muted);font-size:10px;">· 16 Nov 2026</span></div>
   </div>
   <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
     <span id="profileName">Me</span> ▾
@@ -401,6 +401,7 @@ input[type=time]{color-scheme:dark;}
 
   <div style="display:flex;gap:8px;">
     <button class="btn-s" style="flex:1;margin-top:0;" id="resetDayBtn">Clear Today's Log</button>
+    <button class="btn-s" style="margin-top:0;padding:12px 14px;flex-shrink:0;" onclick="openShareCard()" title="Share day summary">📤 Share</button>
   </div>
 </div>
 </div>
@@ -408,10 +409,11 @@ input[type=time]{color-scheme:dark;}
 <!-- MEALS TAB -->
 <div id="tab-meals" class="tab-pane">
 <div class="app">
-  <div class="sub-tabs" id="mealsSubTabs">
-    <div class="sub-tab active" onclick="switchMealsSub('combos')">🍱 Combos</div>
-    <div class="sub-tab" onclick="switchMealsSub('custom')">✏️ My Combos</div>
-    <div class="sub-tab" onclick="switchMealsSub('recipes')">🍳 Recipes</div>
+  <div class="sub-tabs" id="mealsSubTabs" style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;white-space:nowrap;flex-wrap:nowrap;">
+    <div class="sub-tab active" style="flex-shrink:0;" onclick="switchMealsSub('combos')">🍱 Combos</div>
+    <div class="sub-tab" style="flex-shrink:0;" onclick="switchMealsSub('custom')">✏️ My Combos</div>
+    <div class="sub-tab" style="flex-shrink:0;" onclick="switchMealsSub('recipes')">🍳 Recipes</div>
+    <div class="sub-tab" style="flex-shrink:0;" onclick="switchMealsSub('planner')">📅 Week Plan</div>
   </div>
   <div id="meals-combos">
     <div class="period-toggle" style="margin-bottom:12px;">
@@ -461,6 +463,12 @@ input[type=time]{color-scheme:dark;}
       <div id="recipeErr" class="err"></div>
     </div>
     <div id="recipesList"></div>
+  </div>
+  <div id="meals-planner" style="display:none;">
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 0 10px;">
+      <div id="plannerDaySelector" style="display:flex;gap:6px;min-width:max-content;"></div>
+    </div>
+    <div id="plannerDayView"></div>
   </div>
 </div>
 </div>
@@ -819,9 +827,10 @@ input[type=time]{color-scheme:dark;}
     <div style="font-size:11px;color:var(--muted);margin-top:8px;">Backup saves all data for current profile as a JSON file you can restore later.</div>
   </div>
   <div style="text-align:center;padding:20px 0 8px;font-size:12px;color:var(--muted);">
-    <div style="font-weight:700;color:var(--text);font-size:12px;">Calorie Tracker <span style="color:var(--accent);">v3.4</span></div>
+    <div style="font-weight:700;color:var(--text);font-size:12px;">Calorie Tracker <span style="color:var(--accent);">v3.5</span></div>
     <div>Updated: 16 Nov 2026</div>
     <div style="margin-top:6px;font-size:11px;color:var(--muted);line-height:1.6;">
+      <span style="color:var(--accent2);">v3.5</span> · 16 Nov 2026 — Weekly Meal Planner, Day Summary Share Card<br>
       <span style="color:var(--accent2);">v3.4</span> · 16 Nov 2026 — Recipe Builder, 100+ foods, Streaks &amp; Badges<br>
       <span style="color:var(--accent2);">v3.3</span> · 16 Nov 2026 — Water ml buttons, custom input, Full Day Log mode<br>
       <span style="color:var(--accent2);">v3.2</span> · 16 Nov 2026 — Fasting food logging fix, version history<br>
@@ -831,6 +840,19 @@ input[type=time]{color-scheme:dark;}
     </div>
   </div>
 </div>
+</div>
+
+<!-- Share Card Modal -->
+<div id="shareModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:400;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:16px;padding:16px;width:100%;max-width:360px;max-height:90vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-size:15px;font-weight:700;">📤 Day Summary Card</div>
+      <button onclick="closeShareModal()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <canvas id="shareCanvas" style="width:100%;border-radius:10px;display:block;"></canvas>
+    <button class="btn-p" onclick="downloadShareCard()" style="margin-top:12px;">💾 Save as PNG</button>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px;">Screenshot or save to share</div>
+  </div>
 </div>
 
 <!-- BOTTOM NAV -->
@@ -1308,12 +1330,11 @@ function switchBodySub(s){
   if(s==='medrecords')renderMedRecords();
 }
 function switchMealsSub(s){
-  document.querySelectorAll('#mealsSubTabs .sub-tab').forEach((b,i)=>b.classList.toggle('active',['combos','custom','recipes'][i]===s));
-  document.getElementById('meals-combos').style.display=s==='combos'?'':'none';
-  document.getElementById('meals-custom').style.display=s==='custom'?'':'none';
-  document.getElementById('meals-recipes').style.display=s==='recipes'?'':'none';
+  document.querySelectorAll('#mealsSubTabs .sub-tab').forEach((b,i)=>b.classList.toggle('active',['combos','custom','recipes','planner'][i]===s));
+  ['combos','custom','recipes','planner'].forEach(id=>{const el=document.getElementById('meals-'+id);if(el)el.style.display=id===s?'':'none';});
   if(s==='custom')renderCustomCombos();
   if(s==='recipes')renderRecipesList();
+  if(s==='planner'){plannerDate=plannerDate||today();renderPlanner();}
 }
 function setComboCat(c){
   comboCat=c;
@@ -2625,6 +2646,216 @@ function renderWeightGoal(){
     <div class="stat-row"><span class="sr-label">Estimated ETA</span><span class="sr-val" style="color:var(--accent);">${etaText}</span></div>
     ${loggedDays>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px;">Based on ${loggedDays} logged day${loggedDays!==1?'s':''} in last 2 weeks</div>`:''}
   `;
+}
+
+// ── Feature 7: Weekly Meal Planner ───────────────────────────────────────────
+let plannerDate='';
+function getPlanData(d){const def='{"breakfast":[],"lunch":[],"dinner":[],"extra":[]}';return JSON.parse(localStorage.getItem(pk('plan:'+d))||def);}
+function savePlanData(d,data){localStorage.setItem(pk('plan:'+d),JSON.stringify(data));showSaveDot();}
+function renderPlanner(){renderPlannerDays();renderPlannerDayView();}
+function renderPlannerDays(){
+  const el=document.getElementById('plannerDaySelector');if(!el)return;
+  const t=today();
+  let html='';
+  for(let i=0;i<7;i++){
+    const d=new Date();d.setDate(d.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    const pd=getPlanData(ds);
+    const cal=[...pd.breakfast,...pd.lunch,...pd.dinner,...pd.extra].reduce((s,x)=>s+x.cal,0);
+    const sel=ds===plannerDate;
+    const dayName=i===0?'Today':d.toLocaleDateString('en-IN',{weekday:'short'});
+    html+=`<div onclick="selectPlannerDay('${ds}')" style="text-align:center;padding:8px 12px;border-radius:12px;cursor:pointer;border:1px solid ${sel?'var(--accent)':'var(--border)'};background:${sel?'var(--accent)':'var(--card)'};color:${sel?'#0f1115':'var(--text)'};min-width:52px;">
+      <div style="font-size:11px;font-weight:${i===0?700:400};">${dayName}</div>
+      <div style="font-size:18px;font-weight:800;">${d.getDate()}</div>
+      <div style="font-size:10px;opacity:.8;">${cal?cal+'k':'—'}</div>
+    </div>`;
+  }
+  el.innerHTML=html;
+}
+function selectPlannerDay(d){plannerDate=d;renderPlannerDays();renderPlannerDayView();}
+function renderPlannerDayView(){
+  const el=document.getElementById('plannerDayView');if(!el)return;
+  const pd=getPlanData(plannerDate);
+  const totalCal=[...pd.breakfast,...pd.lunch,...pd.dinner,...pd.extra].reduce((s,x)=>s+x.cal,0);
+  const dFmt=new Date(plannerDate+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'short'});
+  const mealDefs=[
+    {key:'breakfast',icon:'🌅',label:'Breakfast'},
+    {key:'lunch',icon:'☀️',label:'Lunch'},
+    {key:'dinner',icon:'🌙',label:'Dinner'},
+    {key:'extra',icon:'🍵',label:'Snacks'},
+  ];
+  let html=`<div class="card" style="margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
+      <div>
+        <div style="font-size:14px;font-weight:700;">${dFmt}</div>
+        <div style="font-size:12px;color:var(--muted);">${totalCal?totalCal+' kcal planned':'No meals planned yet'}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn-sm" style="font-size:11px;padding:6px 10px;" onclick="applyPlanToDay('${plannerDate}')">✅ Apply to Log</button>
+        <button class="btn-sm" style="font-size:11px;padding:6px 10px;background:var(--border);color:var(--muted);" onclick="clearPlan('${plannerDate}')">🗑 Clear</button>
+      </div>
+    </div>
+  </div>`;
+  mealDefs.forEach(m=>{
+    const items=pd[m.key]||[];
+    const mCal=items.reduce((s,x)=>s+x.cal,0);
+    html+=`<div class="meal-sec" style="margin-bottom:8px;">
+      <div class="meal-head">
+        <span class="meal-icon">${m.icon}</span>
+        <span class="meal-title">${m.label}</span>
+        <span class="meal-kcal">${mCal?mCal+' kcal':''}</span>
+      </div>
+      <div style="padding:4px 0 6px 32px;">
+        ${items.length?items.map((it,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);">
+          <div><div style="font-size:13px;font-weight:600;">${it.name}</div><div style="font-size:11px;color:var(--muted);">${it.cal} kcal · P${it.p||0}g</div></div>
+          <button onclick="removePlanItem('${plannerDate}','${m.key}',${i})" style="background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:2px 8px;">✕</button>
+        </div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:4px 0;">Nothing planned</div>'}
+        <div style="margin-top:8px;">
+          <input type="search" placeholder="Search &amp; add food…" style="width:100%;background:var(--border);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:7px 10px;font-size:13px;outline:none;box-sizing:border-box;" oninput="searchPlanFoods(this,'${plannerDate}','${m.key}')" id="planSearch_${m.key}" autocomplete="off">
+          <div class="results" id="planResults_${m.key}" style="max-height:140px;"></div>
+        </div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+function searchPlanFoods(input,d,meal){
+  const q=input.value.toLowerCase().trim();
+  const el=document.getElementById('planResults_'+meal);
+  if(!q){el.innerHTML='';return;}
+  const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q)).slice(0,8);
+  if(!hits.length){el.innerHTML='<div class="es">No results</div>';return;}
+  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addPlanItem('${d}','${meal}','${f.name}')"><div><div class="rname">${f.name}<span class="tag">${f.cat}</span></div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
+}
+function addPlanItem(d,meal,foodName){
+  const f=FOODS.find(x=>x.name===foodName);if(!f)return;
+  const pd=getPlanData(d);
+  if(!pd[meal])pd[meal]=[];
+  pd[meal].push({name:f.name,qty:1,unit:' × '+f.unit,cal:f.cal,p:f.p,c:f.c,f:f.f,s:f.s||0});
+  savePlanData(d,pd);
+  const inp=document.getElementById('planSearch_'+meal);
+  if(inp)inp.value='';
+  const res=document.getElementById('planResults_'+meal);
+  if(res)res.innerHTML='';
+  renderPlannerDayView();renderPlannerDays();
+  toast(f.name+' added to plan');
+}
+function removePlanItem(d,meal,idx){
+  const pd=getPlanData(d);
+  if(pd[meal])pd[meal].splice(idx,1);
+  savePlanData(d,pd);
+  renderPlannerDayView();renderPlannerDays();
+}
+function applyPlanToDay(d){
+  const pd=getPlanData(d);
+  const meals=['breakfast','lunch','dinner','extra'];
+  const totalItems=meals.reduce((s,m)=>s+(pd[m]||[]).length,0);
+  if(!totalItems){toast('No planned items to apply');return;}
+  if(!confirm('Copy '+totalItems+' planned item(s) to the actual day log for '+d+'?'))return;
+  const dd=getDayData(d);
+  meals.forEach(m=>{if(!dd[m])dd[m]=[];(pd[m]||[]).forEach(it=>dd[m].push({...it}));});
+  saveDayData(d,dd);
+  toast('Plan applied to day log!');
+  if(d===currentDate){renderMeals();renderTotals();}
+}
+function clearPlan(d){
+  if(!confirm('Clear all planned meals for this day?'))return;
+  localStorage.removeItem(pk('plan:'+d));
+  renderPlannerDayView();renderPlannerDays();
+  toast('Plan cleared');
+}
+
+// ── Feature 8: Day Summary Share Card ────────────────────────────────────────
+function openShareCard(){
+  document.getElementById('shareModal').style.display='flex';
+  setTimeout(renderShareCard,50);
+}
+function closeShareModal(){document.getElementById('shareModal').style.display='none';}
+function renderShareCard(){
+  const canvas=document.getElementById('shareCanvas');
+  const dpr=Math.min(window.devicePixelRatio||2,3);
+  const W=380,H=600;
+  canvas.width=W*dpr;canvas.height=H*dpr;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  // Background
+  ctx.fillStyle='#0f1115';ctx.fillRect(0,0,W,H);
+  // Top accent bar
+  const g=ctx.createLinearGradient(0,0,W,0);g.addColorStop(0,'#5cffa1');g.addColorStop(1,'#3ad98e');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,4);
+  // App name
+  ctx.fillStyle='#5cffa1';ctx.font='bold 13px system-ui,-apple-system,sans-serif';
+  ctx.fillText('Calorie Tracker', 20, 30);
+  // Date
+  const data=getDayData(currentDate);
+  const goals=JSON.parse(localStorage.getItem(pk('goals'))||'{}');
+  const goalCal=goals.cal||2000;
+  let tCal=0,tP=0,tC=0,tF=0;
+  ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(it=>{tCal+=it.cal;tP+=(it.p||0);tC+=(it.c||0);tF+=(it.f||0);}));
+  const dateStr=new Date(currentDate+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  ctx.fillStyle='#7a8a9a';ctx.font='12px system-ui,-apple-system,sans-serif';
+  ctx.fillText(dateStr,20,52);
+  // Big cal number
+  const calCol=tCal<=goalCal?'#5cffa1':'#e8a33d';
+  ctx.fillStyle=calCol;ctx.font='bold 64px system-ui,-apple-system,sans-serif';
+  ctx.textAlign='center';ctx.fillText(Math.round(tCal),W/2,138);
+  ctx.fillStyle='#8899aa';ctx.font='13px system-ui,-apple-system,sans-serif';
+  ctx.fillText('kcal consumed',W/2,162);
+  const diff=Math.round(tCal-goalCal);
+  ctx.fillStyle=diff<=0?'#5cffa1':'#e8a33d';ctx.font='12px system-ui,-apple-system,sans-serif';
+  ctx.fillText(diff<=0?'Within goal '+goalCal+'k':('+'+diff+' over goal '+goalCal+'k'),W/2,183);
+  ctx.textAlign='left';
+  // Divider
+  ctx.fillStyle='#1e2330';ctx.fillRect(20,196,W-40,1);
+  // Macros
+  const macs=[{l:'Protein',v:Math.round(tP),c:'#5b9cf6'},{l:'Carbs',v:Math.round(tC),c:'#e8a33d'},{l:'Fat',v:Math.round(tF),c:'#ff7c5c'}];
+  const mW=(W-40)/3;
+  macs.forEach((m,i)=>{
+    const x=20+i*mW+mW/2;
+    ctx.textAlign='center';
+    ctx.fillStyle=m.c;ctx.font='bold 22px system-ui,-apple-system,sans-serif';ctx.fillText(m.v+'g',x,228);
+    ctx.fillStyle='#8899aa';ctx.font='11px system-ui,-apple-system,sans-serif';ctx.fillText(m.l,x,246);
+  });
+  ctx.textAlign='left';
+  ctx.fillStyle='#1e2330';ctx.fillRect(20,258,W-40,1);
+  // Meal breakdown
+  ctx.fillStyle='#ccddee';ctx.font='bold 13px system-ui,-apple-system,sans-serif';ctx.fillText('Meal Breakdown',20,280);
+  const mDefs=[{key:'breakfast',label:'Breakfast'},{key:'lunch',label:'Lunch'},{key:'dinner',label:'Dinner'},{key:'extra',label:'Snacks'},{key:'fullday',label:'Full Day Log'}];
+  let y=302;
+  mDefs.forEach(m=>{
+    const items=data[m.key]||[];if(!items.length)return;
+    const mCal=items.reduce((s,x)=>s+x.cal,0);
+    ctx.fillStyle='#5cffa1';ctx.font='bold 12px system-ui,-apple-system,sans-serif';
+    ctx.fillText(m.label,24,y);
+    ctx.fillStyle='#e8a33d';ctx.textAlign='right';ctx.fillText(mCal+' kcal',W-20,y);ctx.textAlign='left';
+    y+=17;
+    items.slice(0,3).forEach(it=>{
+      const nm=it.name.length>32?it.name.slice(0,30)+'…':it.name;
+      ctx.fillStyle='#6a7a8a';ctx.font='11px system-ui,-apple-system,sans-serif';ctx.fillText('  '+nm,24,y);
+      ctx.fillStyle='#44505e';ctx.textAlign='right';ctx.fillText(it.cal+'k',W-20,y);ctx.textAlign='left';
+      y+=15;
+    });
+    if(items.length>3){ctx.fillStyle='#44505e';ctx.font='10px system-ui,-apple-system,sans-serif';ctx.fillText('  +'+(items.length-3)+' more',24,y);y+=14;}
+    y+=5;
+  });
+  // Water
+  const wml=getWater(currentDate)*250;
+  if(wml>0){
+    ctx.fillStyle='#44505e';ctx.fillRect(20,y,W-40,1);y+=10;
+    ctx.fillStyle='#5b9cf6';ctx.font='12px system-ui,-apple-system,sans-serif';ctx.fillText('Water: '+wml+'ml',24,y);
+    y+=15;
+  }
+  // Footer — place at bottom regardless
+  const footerY=H-36;
+  ctx.fillStyle='#1a1f2a';ctx.fillRect(0,footerY,W,36);
+  ctx.fillStyle='#44505e';ctx.font='11px system-ui,-apple-system,sans-serif';ctx.textAlign='center';
+  ctx.fillText('Tracked with Calorie Tracker PWA · v3.5',W/2,footerY+22);ctx.textAlign='left';
+}
+function downloadShareCard(){
+  const canvas=document.getElementById('shareCanvas');
+  const a=document.createElement('a');a.download='day-summary-'+currentDate+'.png';
+  a.href=canvas.toDataURL('image/png');a.click();
 }
 
 // ── Feature 4: Recipe Builder ─────────────────────────────────────────────────
