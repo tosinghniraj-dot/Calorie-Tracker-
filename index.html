@@ -234,6 +234,13 @@ input[type=time]{color-scheme:dark;}
     <button class="nav-btn" id="nextDay" onclick="changeDay(1)" disabled>›</button>
   </div>
 
+  <!-- Fasting Mode quick-access button (hidden when fast is active) -->
+  <div id="fastingModeBtn" style="margin:6px 0 2px;">
+    <button onclick="openFastingDrawer()" style="width:100%;background:var(--card);border:1px dashed var(--border);border-radius:12px;color:var(--muted);font-size:13px;padding:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+      🕯️ <span>Start Fasting Day</span>
+    </button>
+  </div>
+
   <!-- Fasting Banner -->
   <div class="fasting-banner" id="fastingBanner">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -360,8 +367,7 @@ input[type=time]{color-scheme:dark;}
   </div>
 
   <div style="display:flex;gap:8px;">
-    <button class="btn-sm" style="flex:1;padding:11px;" onclick="openFastingDrawer()">🕯️ Fasting Mode</button>
-    <button class="btn-s" style="flex:2;margin-top:0;" id="resetDayBtn">Clear Today's Log</button>
+    <button class="btn-s" style="flex:1;margin-top:0;" id="resetDayBtn">Clear Today's Log</button>
   </div>
 </div>
 </div>
@@ -1187,6 +1193,8 @@ function renderFastingBanner(){
   const rm=document.getElementById('regularMeals');
   const ff=document.getElementById('fastingFoodsSection');
   banner.classList.toggle('active',f.enabled);
+  const fmBtn=document.getElementById('fastingModeBtn');
+  if(fmBtn) fmBtn.style.display=f.enabled?'none':'block';
   if(f.enabled){
     const ft=FASTING_TYPES.find(x=>x.id===f.type)||FASTING_TYPES[0];
     document.getElementById('fastingTitle').textContent=ft.label;
