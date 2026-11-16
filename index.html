@@ -1077,7 +1077,7 @@ function toggleFullDayMode(){setFullDayMode(!getFullDayMode());renderMeals();ren
 function saveDayData(d,data){localStorage.setItem(pk('day:'+d),JSON.stringify(data));showSaveDot();}
 function getGoals(){return JSON.parse(localStorage.getItem(pk('goals'))||'{"cal":2000,"p":50,"c":250,"f":70}');}
 function getWater(d){return parseInt(localStorage.getItem(pk('water:'+(d||currentDate)))||'0',10);}
-function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(8,n))));renderWater();}
+function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(8,n))));renderWaterSmall();renderWater();}
 function getProfiles(){return JSON.parse(localStorage.getItem('profiles')||'["default"]');}
 function saveProfiles(p){localStorage.setItem('profiles',JSON.stringify(p));}
 function getWeightLog(){return JSON.parse(localStorage.getItem(pk('weight_log'))||'[]');}
