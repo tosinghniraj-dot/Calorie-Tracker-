@@ -316,6 +316,24 @@ input[type=time]{color-scheme:dark;}
     <div id="commonList" class="chips"><span class="empty" style="padding:4px 0;font-size:12px;">Items you log will appear here</span></div>
   </div>
 
+  <!-- Smart Suggestions -->
+  <div class="card" id="suggestionsCard">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>💡 Smart Suggestions</span>
+      <span id="suggBadge" style="font-size:11px;background:#22262f;padding:2px 8px;border-radius:10px;"></span>
+    </div>
+    <div id="suggestionsList"><div class="empty" style="padding:4px 0;">Log meals to get suggestions</div></div>
+  </div>
+
+  <!-- Calorie Balance -->
+  <div class="card" id="calBalanceCard">
+    <div class="card-title" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>⚖️ Calorie Balance</span>
+      <button class="btn-sm" style="font-size:11px;padding:4px 10px;" onclick="openBalanceDrawer()">Details</button>
+    </div>
+    <div id="calBalanceSummary"></div>
+  </div>
+
   <div style="display:flex;gap:8px;">
     <button class="btn-sm" style="flex:1;padding:11px;" onclick="openFastingDrawer()">🕯️ Fasting Mode</button>
     <button class="btn-s" style="flex:2;margin-top:0;" id="resetDayBtn">Clear Today's Log</button>
@@ -365,8 +383,9 @@ input[type=time]{color-scheme:dark;}
 <div id="tab-history" class="tab-pane">
 <div class="app">
   <div class="period-toggle">
-    <div class="period-btn active" id="period-7" onclick="setPeriod(7)">Last 7 Days</div>
-    <div class="period-btn" id="period-30" onclick="setPeriod(30)">Last 30 Days</div>
+    <div class="period-btn active" id="period-7" onclick="setPeriod(7)">7 Days</div>
+    <div class="period-btn" id="period-30" onclick="setPeriod(30)">30 Days</div>
+    <div class="period-btn" id="period-report" onclick="setPeriod('report')">Report</div>
   </div>
   <div class="card">
     <div class="card-title">Calorie Trend</div>
@@ -383,6 +402,27 @@ input[type=time]{color-scheme:dark;}
     <div class="card-title">Exercise Log</div>
     <div id="histExercise"></div>
   </div>
+  <!-- Health Report (shown when period=report) -->
+  <div id="healthReportSection" style="display:none;">
+    <div class="card">
+      <div class="card-title">📊 Weekly Calorie Balance</div>
+      <div class="chart-wrap"><canvas id="balanceChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📋 Net Balance Summary</div>
+      <div id="reportSummary"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🩺 Health Indicators</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Indicative only. Consult a doctor for diagnosis.</div>
+      <div id="healthIndicators"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📆 Monthly Excess Pool</div>
+      <div id="monthlyPoolDisplay"></div>
+      <button class="btn-s" style="margin-top:8px;" onclick="clearMonthlyPool()">Clear Monthly Pool</button>
+    </div>
+  </div>
 </div>
 </div>
 
@@ -390,12 +430,13 @@ input[type=time]{color-scheme:dark;}
 <div id="tab-body" class="tab-pane">
 <div class="app">
   <div class="sub-tabs">
-    <div class="sub-tab active" onclick="switchBodySub('weight')">⚖️ Weight/BMI</div>
+    <div class="sub-tab active" onclick="switchBodySub('weight')">⚖️ BMI</div>
     <div class="sub-tab" onclick="switchBodySub('water')">💧 Water</div>
     <div class="sub-tab" onclick="switchBodySub('exercise')">🏃 Exercise</div>
     <div class="sub-tab" onclick="switchBodySub('sugar')">🩸 Sugar</div>
     <div class="sub-tab" onclick="switchBodySub('bp')">❤️ BP</div>
-    <div class="sub-tab" onclick="switchBodySub('fat')">📊 Body Fat</div>
+    <div class="sub-tab" onclick="switchBodySub('fat')">📊 Fat%</div>
+    <div class="sub-tab" onclick="switchBodySub('medrecords')">🧪 Lab</div>
   </div>
 
   <!-- Weight/BMI -->
@@ -587,7 +628,41 @@ input[type=time]{color-scheme:dark;}
         <tbody id="fatTableBody"></tbody>
       </table>
     </div>
+  
+  <!-- Medical Records -->
+  <div id="body-medrecords" style="display:none;">
+    <div class="card">
+      <div class="card-title">Add Lab Result</div>
+      <div class="two-col">
+        <div><label style="margin-top:0;">Date</label><input type="text" id="medDate" placeholder="YYYY-MM-DD"></div>
+        <div><label style="margin-top:0;">Test</label>
+          <select id="medTest">
+            <option value="hb">Hemoglobin (g/dL)</option>
+            <option value="fbg">Fasting Blood Sugar (mg/dL)</option>
+            <option value="ppbg">PP Blood Sugar (mg/dL)</option>
+            <option value="hba1c">HbA1c (%)</option>
+            <option value="tchol">Total Cholesterol (mg/dL)</option>
+            <option value="ldl">LDL Cholesterol (mg/dL)</option>
+            <option value="hdl">HDL Cholesterol (mg/dL)</option>
+            <option value="trig">Triglycerides (mg/dL)</option>
+            <option value="creat">Creatinine (mg/dL)</option>
+            <option value="tsh">TSH (mIU/L)</option>
+            <option value="uric">Uric Acid (mg/dL)</option>
+            <option value="wbc">WBC Count (×10³/µL)</option>
+          </select>
+        </div>
+      </div>
+      <label>Value</label>
+      <input type="number" id="medValue" placeholder="Enter result" step="0.01">
+      <div id="medRangeHint" style="font-size:11px;color:var(--muted);margin-top:4px;"></div>
+      <button class="btn-p" onclick="logMedRecord()">Save Result</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Lab History &amp; Trends</div>
+      <div id="medRecordsList"></div>
+    </div>
   </div>
+</div>
 </div>
 </div>
 
@@ -629,8 +704,8 @@ input[type=time]{color-scheme:dark;}
     <button class="btn-s" style="margin-top:0;" onclick="exportCSV()">📥 Export as CSV</button>
   </div>
   <div style="text-align:center;padding:20px 0 8px;font-size:12px;color:var(--muted);">
-    <div style="font-weight:700;color:var(--text);font-size:12px;">Calorie Tracker <span style="color:var(--accent);">v3.0</span></div>
-    <div>Updated: 15 Nov 2025</div>
+    <div style="font-weight:700;color:var(--text);font-size:12px;">Calorie Tracker <span style="color:var(--accent);">v3.1</span></div>
+    <div>Updated: 16 Nov 2025</div>
   </div>
 </div>
 </div>
@@ -709,6 +784,28 @@ input[type=time]{color-scheme:dark;}
       <div id="fastingTypeList"></div>
       <button class="btn-p" onclick="startFasting()">Start Fast</button>
     </div>
+  </div>
+</div>
+
+<!-- Calorie Balance Drawer -->
+<div class="drawer" id="balanceDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-head">
+    <div class="drawer-title">⚖️ Calorie Balance Tracker</div>
+    <button class="drawer-close" onclick="closeDrawer()">×</button>
+  </div>
+  <div class="drawer-body">
+    <div id="balanceDetail"></div>
+    <div class="divider"></div>
+    <div class="card-title">Move to Monthly Pool</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">If you can't recover the daily excess soon, add it to the monthly pool instead of daily tracking.</div>
+    <label style="margin-top:0;">Amount to defer (kcal)</label>
+    <input type="number" id="deferAmount" placeholder="e.g. 1000">
+    <label>Note (optional)</label>
+    <input type="text" id="deferNote" placeholder="e.g. Diwali celebration">
+    <button class="btn-p" onclick="deferToMonthly()">Add to Monthly Pool</button>
+    <div class="divider"></div>
+    <button class="btn-s" onclick="resetBalance()">Reset Daily Balance to Zero</button>
   </div>
 </div>
 
@@ -941,17 +1038,18 @@ function switchMainTab(t){
   if(t==='meals')renderCombos();
 }
 function switchBodySub(s){
+  const ids=['weight','water','exercise','sugar','bp','fat','medrecords'];
   document.querySelectorAll('#tab-body .sub-tab').forEach((b,i)=>{
-    const ids=['weight','water','exercise','sugar','bp','fat'];
     b.classList.toggle('active',ids[i]===s);
-    document.getElementById('body-'+ids[i]).style.display=ids[i]===s?'':'none';
   });
+  ids.forEach(id=>{const el=document.getElementById('body-'+id);if(el)el.style.display=id===s?'':'none';});
   if(s==='water')renderWater();
   if(s==='weight'){renderWeightChart();renderBodyLogs();}
   if(s==='exercise')renderExerciseList();
-  if(s==='sugar')renderSugarTable();
+  if(s==='sugar'){renderSugarTable();document.getElementById('foodSugarToday').textContent=getTodaySugar()+'g';}
   if(s==='bp')renderBPTable();
   if(s==='fat')renderFatTable();
+  if(s==='medrecords')renderMedRecords();
 }
 function switchMealsSub(s){
   document.querySelectorAll('#mealsSubTabs .sub-tab').forEach((b,i)=>b.classList.toggle('active',['combos','custom'][i]===s));
@@ -993,6 +1091,7 @@ function renderDay(){
   document.getElementById('todayBadge').textContent=currentDate===t?'TODAY · tap to change date':'tap to change date';
   document.getElementById('nextDay').disabled=currentDate>=t;
   renderMeals();renderTotals();renderWaterSmall();renderFastingBanner();
+  renderSuggestions();renderCalBalance();
 }
 function fmt(d){const o=new Date(d+'T00:00:00');return o.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});}
 
@@ -1324,10 +1423,21 @@ function setPeriod(n){
   histPeriod=n;
   document.getElementById('period-7').classList.toggle('active',n===7);
   document.getElementById('period-30').classList.toggle('active',n===30);
+  document.getElementById('period-report').classList.toggle('active',n==='report');
   renderHistory();
 }
 
+function getTodaySugar(){
+  const data=getDayData(currentDate);let s=0;
+  ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>s+=(i.s||0)));
+  return Math.round(s);
+}
 function renderHistory(){
+  if(histPeriod==='report'){
+    document.getElementById('healthReportSection').style.display='';
+    renderHealthReport();return;
+  }
+  document.getElementById('healthReportSection').style.display='none';
   const days=[];const t=today();
   for(let i=histPeriod-1;i>=0;i--){const d=new Date(t);d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
   const rows=days.map(d=>{
@@ -1614,6 +1724,406 @@ function exportCSV(){
   const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='calorie-tracker.csv';a.click();
   URL.revokeObjectURL(a.href);toast('CSV exported');
+}
+
+// ── Smart Suggestions ────────────────────────────────────────────────────────
+function renderSuggestions(){
+  const data=getDayData(currentDate);
+  let cal=0,s=0,f=0;
+  ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>{cal+=i.cal;s+=(i.s||0);f+=(i.f||0);}));
+  const water=getWater(currentDate);
+  const g=getGoals();
+  const isToday=currentDate===today();
+  const hour=new Date().getHours();
+  const suggestions=[];
+
+  // Water suggestions
+  const waterGoalGlasses=8;
+  const waterGoalLiters=2;
+  if(isToday){
+    const remaining=waterGoalGlasses-water;
+    const litersHad=water*0.25;
+    const litersNeeded=Math.max(0,waterGoalLiters-litersHad);
+    if(water===0&&hour>=10){
+      suggestions.push({type:'danger',icon:'💧',text:`No water logged today! Drink at least ${waterGoalLiters}L (${waterGoalGlasses} glasses) throughout the day.`});
+    }else if(remaining>0&&hour>=18){
+      const urgent=Math.round(litersNeeded*10)/10;
+      const minimum=Math.round(litersNeeded*0.85*10)/10;
+      suggestions.push({type:'warning',icon:'💧',text:`Only ${litersHad.toFixed(2)}L water today. Drink ${urgent}L (${remaining} glasses) before sleep — at minimum ${minimum}L to stay 85% hydrated.`});
+    }else if(remaining>0&&hour>=14){
+      suggestions.push({type:'info',icon:'💧',text:`${litersHad.toFixed(2)}L water so far. Have ${litersNeeded.toFixed(1)}L more (${remaining} glasses) by evening.`});
+    }else if(remaining<=2&&hour>=10){
+      suggestions.push({type:'good',icon:'💧',text:`Great! ${litersHad.toFixed(2)}L water today. Only ${remaining} glass${remaining!==1?'es':''} to go.`});
+    }
+  }else{
+    // Past day water recovery suggestion
+    if(water<5){
+      suggestions.push({type:'info',icon:'💧',text:`You had only ${water*0.25}L water on ${currentDate.slice(5)}. Try to drink an extra 0.5L today to compensate.`});
+    }
+  }
+
+  // Sugar suggestions
+  const sugarLimit=25;
+  if(s>sugarLimit){
+    const excess=Math.round(s-sugarLimit);
+    suggestions.push({type:'danger',icon:'🍬',text:`Excess sugar today: ${Math.round(s)}g (${excess}g over the 25g daily limit). Avoid sweets/sugary drinks for the next ${excess>20?'5':'3'} days.`});
+    updateCalBalance(0,excess*4,0,'sugar');// ~4 kcal/g
+  }else if(s>18){
+    suggestions.push({type:'warning',icon:'🍬',text:`Sugar intake: ${Math.round(s)}g — approaching the 25g limit. Skip dessert today.`});
+  }else if(isToday&&s<5&&cal>500){
+    suggestions.push({type:'good',icon:'🍬',text:`Low sugar intake (${Math.round(s)}g). Keep it up!`});
+  }
+
+  // Fat suggestions
+  const fatLimit=g.f||70;
+  if(f>fatLimit*1.3){
+    const excess=Math.round(f-fatLimit);
+    suggestions.push({type:'warning',icon:'🧈',text:`High fat intake: ${Math.round(f)}g (${excess}g over your ${fatLimit}g goal). Avoid fried/oily food for the next ${excess>30?'5':'3'} days.`});
+  }
+
+  // Calorie balance suggestions
+  const calGoal=g.cal||2000;
+  if(calGoal&&cal>0){
+    const excess=Math.round(cal-calGoal);
+    if(excess>300){
+      const days=excess>500?3:2;
+      const dailyCut=Math.round(excess/days);
+      suggestions.push({type:'danger',icon:'🔥',text:`${excess} kcal over goal today. Reduce by ~${dailyCut} kcal/day for the next ${days} days to recover, or defer to monthly pool.`});
+      if(isToday)updateCalBalance(excess,0,0,'daily');
+    }else if(excess>0&&excess<=300){
+      suggestions.push({type:'warning',icon:'🔥',text:`${excess} kcal over goal. Light activity or a smaller snack tomorrow will balance this.`});
+    }else if(excess<-300&&isToday&&hour>=19){
+      suggestions.push({type:'info',icon:'🔥',text:`${Math.abs(excess)} kcal under goal today — good deficit! This helps recover past excess.`});
+      if(isToday)updateCalBalance(excess,0,0,'daily');
+    }
+  }
+
+  // Show running balance warning
+  const bal=getCalBalance();
+  if(bal.pending>500){
+    const days=Math.ceil(bal.pending/300);
+    suggestions.push({type:'warning',icon:'⚖️',text:`Cumulative excess: ${bal.pending} kcal still to recover. At 300 kcal/day deficit this takes ~${days} days.`});
+  }else if(bal.pending<-200){
+    suggestions.push({type:'good',icon:'⚖️',text:`You have a ${Math.abs(bal.pending)} kcal cumulative deficit — your calorie balance is on track!`});
+  }
+
+  // Medical record alert
+  const medRecords=getMedRecords();
+  const recentHbA1c=medRecords.filter(r=>r.test==='hba1c').slice(-1)[0];
+  if(recentHbA1c&&recentHbA1c.value>=5.7){
+    suggestions.push({type:'danger',icon:'🩺',text:`Your HbA1c (${recentHbA1c.value}%) is in pre-diabetic range. Limit sugar and refined carbs daily.`});
+  }
+  const recentChol=medRecords.filter(r=>r.test==='tchol').slice(-1)[0];
+  if(recentChol&&recentChol.value>=200){
+    suggestions.push({type:'warning',icon:'🩺',text:`Total cholesterol ${recentChol.value} mg/dL (borderline high). Reduce oily/fried food.`});
+  }
+
+  const el=document.getElementById('suggestionsList');
+  const badge=document.getElementById('suggBadge');
+  const urgent=suggestions.filter(s=>s.type==='danger').length;
+  badge.textContent=urgent?urgent+' urgent':suggestions.length?suggestions.length+' tips':'✓ All good';
+  badge.style.color=urgent?'var(--danger)':suggestions.length?'var(--accent2)':'var(--accent)';
+  if(!suggestions.length){el.innerHTML='<div class="empty" style="padding:4px 0;">Everything looks good today! 🎉</div>';return;}
+  const colors={danger:'var(--danger)',warning:'var(--accent2)',info:'#7b8ef7',good:'var(--accent)'};
+  el.innerHTML=suggestions.map(s=>`<div style="display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;flex-shrink:0;">${s.icon}</span><div style="font-size:12px;line-height:1.5;color:${colors[s.type]||'var(--text)'};">${s.text}</div></div>`).join('').replace(/border-bottom[^;]+;(?=[^<]*<\/div><\/div>$)/,'');
+}
+
+// ── Calorie Balance Tracker ───────────────────────────────────────────────────
+function getCalBalance(){return JSON.parse(localStorage.getItem(pk('cal_balance'))||'{"pending":0,"history":[]}');}
+function saveCalBalance(b){localStorage.setItem(pk('cal_balance'),JSON.stringify(b));}
+function getMonthlyPool(){return JSON.parse(localStorage.getItem(pk('monthly_pool'))||'[]');}
+function saveMonthlyPool(p){localStorage.setItem(pk('monthly_pool'),JSON.stringify(p));}
+
+let _balanceUpdatedDate='';
+function updateCalBalance(calExcess,sugarExcess,fatExcess,source){
+  // Only update once per day for calorie excess (not sugar)
+  if(source==='daily'){
+    const key=pk('bal_updated_'+today());
+    if(localStorage.getItem(key))return;
+    localStorage.setItem(key,'1');
+  }
+  if(calExcess===0&&sugarExcess===0)return;
+  const bal=getCalBalance();
+  const change=calExcess; // positive = excess to recover, negative = deficit (good)
+  if(change!==0){
+    bal.pending=Math.round(bal.pending+change);
+    bal.history.push({date:today(),change,source});
+    if(bal.history.length>60)bal.history=bal.history.slice(-60);
+    saveCalBalance(bal);
+    renderCalBalance();
+  }
+}
+
+function renderCalBalance(){
+  const bal=getCalBalance();
+  const g=getGoals();const calGoal=g.cal||2000;
+  const el=document.getElementById('calBalanceSummary');
+  if(!el)return;
+  if(bal.pending===0){el.innerHTML='<div style="color:var(--accent);font-size:13px;">✓ Calorie balance is neutral</div>';return;}
+  const isExcess=bal.pending>0;
+  const days=Math.ceil(Math.abs(bal.pending)/300);
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:22px;font-weight:700;color:${isExcess?'var(--danger)':'var(--accent)'};">${isExcess?'+':''}${bal.pending} kcal</div>
+      <div style="font-size:11px;color:var(--muted);">${isExcess?'Excess to recover':'Deficit earned'} · ~${days} days at 300 kcal/day</div>
+    </div>
+    <div style="text-align:right;font-size:12px;color:var(--muted);">
+      <div>Target/day</div>
+      <div style="font-size:14px;font-weight:700;color:var(--text);">${isExcess?calGoal-300:calGoal+300} kcal</div>
+    </div>
+  </div>`;
+}
+
+function openBalanceDrawer(){
+  const bal=getCalBalance();
+  const pool=getMonthlyPool();
+  const el=document.getElementById('balanceDetail');
+  const poolTotal=pool.reduce((s,e)=>s+e.amount,0);
+  el.innerHTML=`<div class="stat-row"><span class="sr-label">Pending daily excess</span><span class="sr-val" style="color:${bal.pending>0?'var(--danger)':'var(--accent)'};">${bal.pending>0?'+':''}${bal.pending} kcal</span></div>
+    <div class="stat-row"><span class="sr-label">Monthly pool total</span><span class="sr-val" style="color:var(--accent2);">${poolTotal>0?'+':''}${poolTotal} kcal</span></div>
+    ${bal.history.slice(-5).reverse().map(h=>`<div class="stat-row" style="font-size:12px;"><span class="sr-label">${h.date.slice(5)} · ${h.source}</span><span style="color:${h.change>0?'var(--danger)':'var(--accent)'};">${h.change>0?'+':''}${h.change} kcal</span></div>`).join('')}`;
+  if(document.getElementById('deferAmount'))document.getElementById('deferAmount').value=Math.max(0,bal.pending)||'';
+  openDrawer('balanceDrawer');
+}
+
+function deferToMonthly(){
+  const amount=parseInt(document.getElementById('deferAmount').value)||0;
+  const note=document.getElementById('deferNote').value.trim()||'Manual defer';
+  if(!amount){toast('Enter amount to defer');return;}
+  const pool=getMonthlyPool();
+  pool.push({date:today(),amount,note});
+  saveMonthlyPool(pool);
+  // Reduce pending balance
+  const bal=getCalBalance();
+  bal.pending=Math.max(0,bal.pending-amount);
+  saveCalBalance(bal);
+  renderCalBalance();renderSuggestions();
+  closeDrawer();toast(`${amount} kcal deferred to monthly pool`);
+}
+
+function resetBalance(){
+  if(!confirm('Reset daily balance to zero?'))return;
+  const bal=getCalBalance();bal.pending=0;saveCalBalance(bal);
+  renderCalBalance();renderSuggestions();closeDrawer();toast('Balance reset');
+}
+
+function clearMonthlyPool(){
+  if(!confirm('Clear the monthly pool?'))return;
+  saveMonthlyPool([]);toast('Monthly pool cleared');
+  if(histPeriod==='report')renderHistory();
+}
+
+// ── Health Report ─────────────────────────────────────────────────────────────
+let balanceChart=null;
+function renderHealthReport(){
+  document.getElementById('healthReportSection').style.display='';
+  document.querySelector('#tab-history .card:nth-child(2)').style.display='none';
+  document.querySelector('#tab-history .card:nth-child(3)').style.display='none';
+  document.querySelector('#tab-history .card:nth-child(4)').style.display='none';
+
+  const t=today();const days=[];
+  for(let i=29;i>=0;i--){const d=new Date(t);d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const g=getGoals();const calGoal=g.cal||2000;
+
+  // Per-day net: actual - goal
+  const nets=days.map(d=>{
+    const data=getDayData(d);
+    let cal=0;
+    ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>cal+=i.cal));
+    return cal>0?Math.round(cal-calGoal):null;
+  });
+  const labels=days.map(d=>d.slice(5));
+
+  const ctx=document.getElementById('balanceChart');
+  if(balanceChart)balanceChart.destroy();
+  balanceChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:nets.map(v=>v||0),backgroundColor:nets.map(v=>v>0?'rgba(224,92,92,.7)':'rgba(95,184,120,.7)'),borderRadius:3}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b8f99',font:{size:9},maxRotation:45},grid:{color:'#2a2e38'}},y:{ticks:{color:'#8b8f99',font:{size:10}},grid:{color:'#2a2e38'}}},responsive:true,maintainAspectRatio:false}});
+
+  // Summary
+  const withData=nets.filter(v=>v!==null);
+  const totalExcess=withData.filter(v=>v>0).reduce((s,v)=>s+v,0);
+  const totalDeficit=Math.abs(withData.filter(v=>v<0).reduce((s,v)=>s+v,0));
+  const net=totalExcess-totalDeficit;
+  const pool=getMonthlyPool();
+  const poolTotal=pool.reduce((s,e)=>s+e.amount,0);
+
+  document.getElementById('reportSummary').innerHTML=`
+    <div class="stat-row"><span class="sr-label">Days logged (last 30)</span><span class="sr-val">${withData.length}</span></div>
+    <div class="stat-row"><span class="sr-label">Total excess calories</span><span class="sr-val" style="color:var(--danger);">+${totalExcess} kcal</span></div>
+    <div class="stat-row"><span class="sr-label">Total deficit calories</span><span class="sr-val" style="color:var(--accent);">-${totalDeficit} kcal</span></div>
+    <div class="stat-row"><span class="sr-label">Net balance (30 days)</span><span class="sr-val" style="color:${net>0?'var(--danger)':net<0?'var(--accent)':'var(--muted)'};">${net>0?'+':''}${net} kcal</span></div>
+    <div class="stat-row"><span class="sr-label">Monthly pool (deferred)</span><span class="sr-val" style="color:var(--accent2);">+${poolTotal} kcal</span></div>
+    <div style="font-size:12px;color:var(--muted);margin-top:8px;">~${Math.round(net/7700*10)/10} kg weight change expected (3500 kcal ≈ 0.45 kg)</div>`;
+
+  // Health indicators
+  renderHealthIndicators(totalExcess,totalDeficit,net);
+
+  // Monthly pool display
+  const poolEl=document.getElementById('monthlyPoolDisplay');
+  if(!pool.length){poolEl.innerHTML='<div class="empty">No items in monthly pool</div>';}
+  else{poolEl.innerHTML=pool.map(e=>`<div class="stat-row" style="font-size:12px;"><span class="sr-label">${e.date.slice(5)} · ${e.note}</span><span style="color:var(--accent2);">+${e.amount} kcal</span></div>`).join('')+`<div style="font-size:11px;color:var(--muted);margin-top:6px;">Total: ${poolTotal} kcal · ~${Math.round(poolTotal/calGoal*10)/10} days worth</div>`;}
+}
+
+function renderHealthIndicators(totalExcess,totalDeficit,net){
+  const el=document.getElementById('healthIndicators');
+  const indicators=[];
+  const medRecords=getMedRecords();
+  const g=getGoals();
+
+  // Weight trend
+  const wLog=getWeightLog().slice(-7);
+  if(wLog.length>=2){
+    const wChange=Math.round((wLog[wLog.length-1].kg-wLog[0].kg)*10)/10;
+    const trend=wChange>0?'gaining':'losing';
+    indicators.push({label:'Weight Trend',value:`${wChange>0?'+':''}${wChange} kg (last 7 entries)`,note:wChange>0.5?'Gaining weight — reduce excess calorie days':'',status:wChange>1?'danger':wChange>0.3?'warning':'good'});
+  }
+
+  // Calorie balance health
+  if(net>5000){
+    indicators.push({label:'Calorie Balance',value:'High excess (30 days)',note:'Risk of weight gain. Consider reducing portion sizes.',status:'danger'});
+  }else if(net>2000){
+    indicators.push({label:'Calorie Balance',value:'Moderate excess',note:'Trending towards weight gain. Balance with exercise.',status:'warning'});
+  }else if(net<-3000){
+    indicators.push({label:'Calorie Balance',value:'High deficit',note:'Ensure you are eating enough. Very low intake can be harmful.',status:'warning'});
+  }else{
+    indicators.push({label:'Calorie Balance',value:'Balanced',note:'',status:'good'});
+  }
+
+  // Sugar from food
+  const days30=[];const t=today();
+  for(let i=29;i>=0;i--){const d=new Date(t);d.setDate(d.getDate()-i);days30.push(d.toISOString().slice(0,10));}
+  const daysWithHighSugar=days30.filter(d=>{
+    const data=getDayData(d);let s=0;
+    ['breakfast','lunch','dinner','extra'].forEach(m=>(data[m]||[]).forEach(i=>s+=(i.s||0)));
+    return s>25;
+  }).length;
+  if(daysWithHighSugar>10){
+    indicators.push({label:'Sugar Intake',value:`${daysWithHighSugar}/30 days over limit`,note:'High sugar frequency. Blood sugar risk elevated. Consider getting HbA1c tested.',status:'danger'});
+  }else if(daysWithHighSugar>5){
+    indicators.push({label:'Sugar Intake',value:`${daysWithHighSugar}/30 days over limit`,note:'Moderate sugar excess. Watch sweets and sugary drinks.',status:'warning'});
+  }else{
+    indicators.push({label:'Sugar Intake',value:`${daysWithHighSugar}/30 days over limit`,note:'',status:'good'});
+  }
+
+  // Blood glucose from records
+  const latestFBG=medRecords.filter(r=>r.test==='fbg').slice(-1)[0];
+  if(latestFBG){
+    const fbgStatus=latestFBG.value>=126?'danger':latestFBG.value>=100?'warning':'good';
+    indicators.push({label:'Fasting Blood Sugar',value:`${latestFBG.value} mg/dL (${latestFBG.date.slice(5)})`,note:latestFBG.value>=126?'Diabetic range. Consult your doctor.':latestFBG.value>=100?'Pre-diabetic range. Reduce sugar and refined carbs.':'',status:fbgStatus});
+  }
+
+  // Cholesterol
+  const latestChol=medRecords.filter(r=>r.test==='tchol').slice(-1)[0];
+  if(latestChol){
+    const cs=latestChol.value>=240?'danger':latestChol.value>=200?'warning':'good';
+    indicators.push({label:'Total Cholesterol',value:`${latestChol.value} mg/dL`,note:latestChol.value>=240?'High cholesterol. Reduce oily/fried food. Consult doctor.':latestChol.value>=200?'Borderline high. Reduce saturated fats.':'',status:cs});
+  }
+
+  // Hemoglobin
+  const latestHb=medRecords.filter(r=>r.test==='hb').slice(-1)[0];
+  if(latestHb){
+    const hs=latestHb.value<10?'danger':latestHb.value<12?'warning':'good';
+    indicators.push({label:'Hemoglobin',value:`${latestHb.value} g/dL`,note:latestHb.value<10?'Low hemoglobin. Increase iron-rich foods (spinach, dal, meat). Consult doctor.':latestHb.value<12?'Borderline low. Add iron-rich foods to diet.':'',status:hs});
+  }
+
+  const statusColors={good:'var(--accent)',warning:'var(--accent2)',danger:'var(--danger)'};
+  const statusIcons={good:'✅',warning:'⚠️',danger:'🔴'};
+  el.innerHTML=indicators.map(ind=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;font-weight:600;">${ind.label}</span>
+      <span style="font-size:12px;color:${statusColors[ind.status]};">${statusIcons[ind.status]} ${ind.value}</span>
+    </div>
+    ${ind.note?`<div style="font-size:11px;color:${statusColors[ind.status]};margin-top:3px;">${ind.note}</div>`:''}
+  </div>`).join('')+`<div style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px;background:#11131a;border-radius:8px;">⚕️ These are indicative trends, not medical diagnoses. Consult a healthcare professional for clinical decisions.</div>`;
+}
+
+// ── Medical Records ───────────────────────────────────────────────────────────
+const MED_TESTS={
+  hb:{label:'Hemoglobin',unit:'g/dL',normal:[12,17.5],low:10,high:20},
+  fbg:{label:'Fasting Blood Sugar',unit:'mg/dL',normal:[70,100],warn:126,high:400},
+  ppbg:{label:'PP Blood Sugar (2h)',unit:'mg/dL',normal:[70,140],warn:200,high:500},
+  hba1c:{label:'HbA1c',unit:'%',normal:[4,5.7],warn:6.5,high:15},
+  tchol:{label:'Total Cholesterol',unit:'mg/dL',normal:[0,200],warn:240,high:400},
+  ldl:{label:'LDL Cholesterol',unit:'mg/dL',normal:[0,100],warn:160,high:300},
+  hdl:{label:'HDL Cholesterol',unit:'mg/dL',normalMin:40,low:35,high:100},
+  trig:{label:'Triglycerides',unit:'mg/dL',normal:[0,150],warn:200,high:500},
+  creat:{label:'Creatinine',unit:'mg/dL',normal:[0.7,1.3],warn:2,high:10},
+  tsh:{label:'TSH',unit:'mIU/L',normal:[0.4,4.0],warn:10,high:50},
+  uric:{label:'Uric Acid',unit:'mg/dL',normal:[3.5,7.0],warn:9,high:12},
+  wbc:{label:'WBC Count',unit:'×10³/µL',normal:[4.5,11],warn:15,high:30}
+};
+
+function getMedRecords(){return JSON.parse(localStorage.getItem(pk('med_records'))||'[]');}
+function saveMedRecords(r){localStorage.setItem(pk('med_records'),JSON.stringify(r));}
+
+// Show hint when test selection changes
+document.addEventListener('change',e=>{
+  if(e.target.id==='medTest'){
+    const t=MED_TESTS[e.target.value];
+    const hint=document.getElementById('medRangeHint');
+    if(t&&hint){
+      if(t.normal)hint.textContent=`Normal range: ${t.normal[0]}–${t.normal[1]} ${t.unit}`;
+      else if(t.normalMin)hint.textContent=`Normal: >${t.normalMin} ${t.unit}`;
+    }
+  }
+});
+
+function logMedRecord(){
+  const date=document.getElementById('medDate').value||today();
+  const test=document.getElementById('medTest').value;
+  const value=parseFloat(document.getElementById('medValue').value);
+  if(!value&&value!==0){toast('Enter a value');return;}
+  const records=getMedRecords();
+  records.push({date,test,value});
+  saveMedRecords(records);
+  renderMedRecords();renderSuggestions();toast('Lab result saved');
+  document.getElementById('medValue').value='';
+}
+
+function getMedStatus(test,value){
+  const t=MED_TESTS[test];if(!t)return'normal';
+  if(t.normalMin)return value>=t.normalMin?'normal':'low';
+  if(t.normal){
+    if(value<t.normal[0])return'low';
+    if(t.warn&&value>=t.warn)return'danger';
+    if(value>t.normal[1])return'warning';
+    return'normal';
+  }
+  return'normal';
+}
+
+function renderMedRecords(){
+  const records=getMedRecords();
+  const el=document.getElementById('medRecordsList');
+  if(!el)return;
+  if(!records.length){el.innerHTML='<div class="empty">No lab results yet</div>';return;}
+  // Group by test type, show latest + trend
+  const byTest={};
+  records.forEach(r=>{if(!byTest[r.test])byTest[r.test]=[];byTest[r.test].push(r);});
+  el.innerHTML=Object.entries(byTest).map(([test,recs])=>{
+    const t=MED_TESTS[test]||{label:test,unit:''};
+    const sorted=recs.sort((a,b)=>a.date.localeCompare(b.date));
+    const latest=sorted[sorted.length-1];
+    const prev=sorted[sorted.length-2];
+    const status=getMedStatus(test,latest.value);
+    const trend=prev?(latest.value>prev.value?'↑':'↓'):'—';
+    const trendColor=test==='hdl'?(latest.value>prev?.value?'var(--accent)':'var(--danger)'):(latest.value>prev?.value?'var(--danger)':'var(--accent)');
+    const statusColors={normal:'var(--accent)',warning:'var(--accent2)',low:'#7b8ef7',danger:'var(--danger)'};
+    return`<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div style="font-size:13px;font-weight:600;">${t.label}</div><div style="font-size:11px;color:var(--muted);">${latest.date.slice(5)} · ${recs.length} reading${recs.length!==1?'s':''}</div></div>
+        <div style="text-align:right;"><div style="font-size:16px;font-weight:700;color:${statusColors[status]};">${latest.value} ${t.unit}</div><div style="font-size:11px;color:${trendColor};">${prev?trend+' from '+prev.value:'First reading'}</div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:6px;overflow-x:auto;">
+        ${sorted.slice(-5).map((r,i,arr)=>{const s=getMedStatus(test,r.value);return`<div style="text-align:center;min-width:48px;"><div style="font-size:11px;font-weight:700;color:${statusColors[s]};">${r.value}</div><div style="font-size:9px;color:var(--muted);">${r.date.slice(5)}</div></div>`}).join('<div style="color:var(--border);align-self:center;">›</div>')}
+      </div>
+      <button onclick="delMedRecord('${test}','${latest.date}')" style="background:none;border:none;color:var(--danger);font-size:11px;cursor:pointer;margin-top:4px;">Remove latest</button>
+    </div>`;
+  }).join('');
+}
+
+function delMedRecord(test,date){
+  const records=getMedRecords().filter(r=>!(r.test===test&&r.date===date));
+  saveMedRecords(records);renderMedRecords();renderSuggestions();
 }
 
 // ── Reset ─────────────────────────────────────────────────────────────────────
