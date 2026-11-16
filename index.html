@@ -267,9 +267,34 @@ input[type=time]{color-scheme:dark;}
 
   <div id="fastingFoodsSection" style="display:none;">
     <div class="card">
-      <div class="card-title">Fasting Allowed Foods</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div class="card-title" style="margin-bottom:0;">Fasting Allowed Foods</div>
+        <button class="btn-sm" style="font-size:11px;padding:5px 10px;" onclick="openAdd('extra')">+ Other Food</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Tap any item to add it with quantity ↓</div>
       <div id="fastingFoodsList"></div>
     </div>
+    <div class="card">
+      <div class="card-title">Today's Fasting Log</div>
+      <div class="meal-items" id="items-extra-fasting"><div class="m-empty">Nothing logged yet</div></div>
+      <div style="font-size:12px;color:var(--accent2);margin-top:8px;" id="fastingCalTotal"></div>
+    </div>
+  </div>
+
+  <!-- Fasting Qty Picker (inline, no drawer needed) -->
+  <div id="fastingQtyCard" style="display:none;" class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+      <div style="font-size:14px;font-weight:700;" id="fqName"></div>
+      <button onclick="document.getElementById('fastingQtyCard').style.display='none'" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;" id="fqMeta"></div>
+    <div class="qty-row">
+      <span class="ql">Qty</span>
+      <input type="number" id="fqInput" min="0.1" step="0.1" value="1" oninput="updateFastingQtyPreview()">
+      <span class="qty-unit" id="fqUnit"></span>
+    </div>
+    <div class="sel-total" style="margin-top:8px;"><span class="tcal" id="fqCal">0 kcal</span><span class="tmac" id="fqMac"></span></div>
+    <button class="btn-p" onclick="confirmFastingFood()">Add to Today</button>
   </div>
 
   <div id="regularMeals">
@@ -1166,8 +1191,18 @@ function renderFastingBanner(){
     }else{
       document.getElementById('ifTimer').style.display='none';
     }
-    if(f.type==='dry'||f.type==='water'){
+    if(f.type==='dry'){
       rm.style.display='none';ff.style.display='none';
+      document.getElementById('fastingSub').textContent='Nirjala fast — no food or water. Stay strong!';
+    }else if(f.type==='water'){
+      rm.style.display='none';ff.style.display='block';
+      document.getElementById('fastingFoodsList').innerHTML='<div style="font-size:13px;color:var(--muted);padding:8px 0;">Water-only fast. Use the 💧 Water tracker above to log intake. You may also add lemon water or green tea below.</div>';
+      const allowedWater=['Lemon Water','Green Tea (plain)'];
+      document.getElementById('fastingFoodsList').innerHTML+=allowedWater.map(name=>{
+        const fo=FOODS.find(x=>x.name===name);if(!fo)return'';
+        return`<div class="ri" style="border-radius:8px;border:1px solid var(--border);margin-bottom:6px;" onclick="openFastingQty('${fo.name}')"><div><div class="rname">${fo.name}</div><div class="rmeta">${fo.unit}</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="rcal">${fo.cal} kcal</span><span style="color:var(--accent);font-size:18px;">＋</span></div></div>`;
+      }).join('');
+      renderFastingLog();
     }else if(f.type==='if16'){
       rm.style.display='';ff.style.display='none';
     }else{
@@ -1194,19 +1229,64 @@ function fmtDur(ms){const h=Math.floor(ms/3600000),m=Math.floor((ms%3600000)/600
 
 function renderFastingFoods(allowed){
   const el=document.getElementById('fastingFoodsList');
-  if(!allowed||!allowed.length){el.innerHTML='<div class="empty">No food allowed for this fast</div>';return;}
+  if(!allowed||!allowed.length){el.innerHTML='<div class="empty">No food allowed — this is a strict fast</div>';return;}
   el.innerHTML=allowed.map(name=>{
     const f=FOODS.find(x=>x.name===name);
-    if(!f)return`<div class="ri"><span class="rname">${name}</span></div>`;
-    return`<div class="ri" onclick="addFastingFood('${name}')"><div><div class="rname">${f.name}</div><div class="rmeta">${f.unit} · P${f.p}g C${f.c}g</div></div><span class="rcal">${f.cal} kcal</span></div>`;
+    if(!f)return`<div class="ri" style="cursor:default;"><span class="rname">${name}</span></div>`;
+    return`<div class="ri" style="border-radius:8px;border:1px solid var(--border);margin-bottom:6px;" onclick="openFastingQty('${f.name}')">
+      <div><div class="rname">${f.name}</div><div class="rmeta">${f.unit} · P${f.p}g C${f.c}g F${f.f}g</div></div>
+      <div style="display:flex;align-items:center;gap:8px;"><span class="rcal">${f.cal} kcal</span><span style="color:var(--accent);font-size:18px;">＋</span></div>
+    </div>`;
   }).join('');
+  renderFastingLog();
 }
 
-function addFastingFood(name){
+let _fastingSelFood=null;
+function openFastingQty(name){
   const f=FOODS.find(x=>x.name===name);if(!f)return;
+  _fastingSelFood=f;
+  document.getElementById('fqName').textContent=f.name;
+  document.getElementById('fqMeta').textContent=f.unit+' · '+f.cal+' kcal · P'+f.p+'g C'+f.c+'g F'+f.f+'g';
+  document.getElementById('fqUnit').textContent='× '+f.unit;
+  document.getElementById('fqInput').value=1;
+  updateFastingQtyPreview();
+  document.getElementById('fastingQtyCard').style.display='block';
+  document.getElementById('fastingQtyCard').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function updateFastingQtyPreview(){
+  if(!_fastingSelFood)return;
+  const qty=parseFloat(document.getElementById('fqInput').value)||1;
+  document.getElementById('fqCal').textContent=Math.round(_fastingSelFood.cal*qty)+' kcal';
+  document.getElementById('fqMac').textContent='P'+Math.round(_fastingSelFood.p*qty)+'g C'+Math.round(_fastingSelFood.c*qty)+'g F'+Math.round(_fastingSelFood.f*qty)+'g';
+}
+function confirmFastingFood(){
+  if(!_fastingSelFood)return;
+  const qty=parseFloat(document.getElementById('fqInput').value)||1;
+  const f=_fastingSelFood;
   const d=getDayData(currentDate);
-  d.extra.push({name:f.name,qty:1,unit:' × '+f.unit,cal:f.cal,p:f.p,c:f.c,f:f.f,s:f.s||0});
-  saveDayData(currentDate,d);renderMeals();renderTotals();toast(f.name+' added');
+  if(!d.extra)d.extra=[];
+  d.extra.push({name:f.name,qty,unit:' × '+f.unit,cal:Math.round(f.cal*qty),p:Math.round(f.p*qty*10)/10,c:Math.round(f.c*qty*10)/10,f:Math.round(f.f*qty*10)/10,s:Math.round((f.s||0)*qty*10)/10});
+  saveDayData(currentDate,d);
+  renderFastingLog();renderTotals();renderSuggestions();
+  document.getElementById('fastingQtyCard').style.display='none';
+  _fastingSelFood=null;
+  toast(f.name+' added ('+Math.round(f.cal*qty)+' kcal)');
+}
+function renderFastingLog(){
+  const data=getDayData(currentDate);
+  const items=data.extra||[];
+  const el=document.getElementById('items-extra-fasting');
+  const calEl=document.getElementById('fastingCalTotal');
+  if(!el)return;
+  if(!items.length){el.innerHTML='<div class="m-empty">Nothing logged yet</div>';if(calEl)calEl.textContent='';return;}
+  el.innerHTML=items.map((item,i)=>`<div class="m-item"><div><div class="m-iname">${item.name}</div><div class="m-imeta">${item.qty}${item.unit||''}</div></div><div style="display:flex;align-items:center;"><span class="m-ical">${item.cal} kcal</span><button class="del" onclick="delFastingItem(${i})">✕</button></div></div>`).join('');
+  const total=items.reduce((s,i)=>s+i.cal,0);
+  if(calEl)calEl.textContent='Total: '+total+' kcal today';
+}
+function delFastingItem(idx){
+  const d=getDayData(currentDate);
+  d.extra.splice(idx,1);
+  saveDayData(currentDate,d);renderFastingLog();renderTotals();renderSuggestions();
 }
 
 function openFastingDrawer(){
