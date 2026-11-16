@@ -2509,7 +2509,20 @@ function init(){
   // Set default times
   ['sugarTime','bpTime'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=new Date().toTimeString().slice(0,5);});
   // Service worker
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js');
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(reg=>{
+      reg.update();
+      reg.addEventListener('updatefound',()=>{
+        const nw=reg.installing;
+        nw.addEventListener('statechange',()=>{
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            nw.postMessage({type:'SKIP_WAITING'});
+          }
+        });
+      });
+    });
+    navigator.serviceWorker.addEventListener('controllerchange',()=>location.reload());
+  }
   // IF timer update interval
   setInterval(()=>{const f=getFasting();if(f.enabled&&f.type==='if16')updateIFTimer();},60000);
   // Start meal reminder checker
