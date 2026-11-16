@@ -537,7 +537,7 @@ input[type=time]{color-scheme:dark;}
     <div class="card">
       <div class="card-title">Today's Water Intake</div>
       <div id="waterInfoBig" style="font-size:36px;font-weight:800;color:#5fb878;text-align:center;margin:12px 0 4px;">0 ml</div>
-      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px;" id="waterGlassesBig">0 / 12 glasses · Goal: 2–3 L/day</div>
+      <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:16px;" id="waterGlassesBig">0 / 20 glasses · Goal: 2–5 L/day</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
         <button class="btn-sm" style="padding:12px;font-size:14px;" onclick="addWater(1)">+ 250 ml<br><span style="font-size:10px;opacity:.7;">1 glass</span></button>
         <button class="btn-sm" style="padding:12px;font-size:14px;" onclick="addWater(2)">+ 500 ml<br><span style="font-size:10px;opacity:.7;">2 glasses</span></button>
@@ -553,7 +553,7 @@ input[type=time]{color-scheme:dark;}
           <div id="waterProgressBar" style="height:100%;background:linear-gradient(90deg,#5fb878,#3fa05a);border-radius:4px;transition:width .3s;width:0%"></div>
         </div>
         <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
-          <span>0</span><span>1 L</span><span>2 L</span><span>3 L</span>
+          <span>0</span><span>1 L</span><span>2 L</span><span>3 L</span><span>4 L</span><span>5 L</span>
         </div>
       </div>
     </div>
@@ -1092,7 +1092,7 @@ function toggleFullDayMode(){setFullDayMode(!getFullDayMode());renderMeals();ren
 function saveDayData(d,data){localStorage.setItem(pk('day:'+d),JSON.stringify(data));showSaveDot();}
 function getGoals(){return JSON.parse(localStorage.getItem(pk('goals'))||'{"cal":2000,"p":50,"c":250,"f":70}');}
 function getWater(d){return parseInt(localStorage.getItem(pk('water:'+(d||currentDate)))||'0',10);}
-function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(12,n))));renderWaterSmall();renderWater();showSaveDot();}
+function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(20,n))));renderWaterSmall();renderWater();showSaveDot();}
 function addWater(glasses){setWater(getWater()+glasses);}
 function getProfiles(){return JSON.parse(localStorage.getItem('profiles')||'["default"]');}
 function saveProfiles(p){localStorage.setItem('profiles',JSON.stringify(p));}
@@ -1234,9 +1234,9 @@ function renderWater(){
   const infoEl=document.getElementById('waterInfoBig');
   if(infoEl)infoEl.textContent=ml+' ml';
   const glassEl=document.getElementById('waterGlassesBig');
-  if(glassEl)glassEl.textContent=w+' / 12 glasses · Goal: 2–3 L/day';
+  if(glassEl)glassEl.textContent=w+' / 20 glasses · Goal: 2–5 L/day';
   const bar=document.getElementById('waterProgressBar');
-  if(bar)bar.style.width=Math.min(100,Math.round(ml/3000*100))+'%';
+  if(bar)bar.style.width=Math.min(100,Math.round(ml/5000*100))+'%';
 }
 
 // ── Fasting ───────────────────────────────────────────────────────────────────
