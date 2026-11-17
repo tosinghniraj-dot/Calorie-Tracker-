@@ -214,7 +214,7 @@ input[type=time]{color-scheme:dark;}
 <div class="app-header">
   <div>
     <h1>🍽️ Calorie Tracker</h1>
-    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.5</span> <span style="color:var(--muted);font-size:10px;">· 16 Nov 2026</span></div>
+    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.6</span> <span style="color:var(--muted);font-size:10px;">· 16 Nov 2026</span></div>
   </div>
   <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
     <span id="profileName">Me</span> ▾
@@ -485,6 +485,17 @@ input[type=time]{color-scheme:dark;}
     <div class="card-title">Calorie Trend</div>
     <div class="chart-wrap"><canvas id="histChart"></canvas></div>
   </div>
+  <div class="card">
+    <div class="card-title">Macros Trend</div>
+    <div class="chart-wrap"><canvas id="macroTrendChart"></canvas></div>
+  </div>
+  <div class="card" style="display:flex;gap:12px;align-items:center;">
+    <div style="flex:1;min-width:0;">
+      <div class="card-title">Macro Split</div>
+      <div class="chart-wrap" style="height:160px;"><canvas id="macroDonutChart"></canvas></div>
+    </div>
+    <div id="macroDonutLegend" style="font-size:12px;line-height:2;flex-shrink:0;"></div>
+  </div>
   <div class="card" style="overflow-x:auto;">
     <div class="card-title">Daily Summary</div>
     <table class="hist-table">
@@ -498,6 +509,10 @@ input[type=time]{color-scheme:dark;}
   </div>
   <!-- Health Report (shown when period=report) -->
   <div id="healthReportSection" style="display:none;">
+    <div class="card">
+      <div class="card-title">🏅 Weekly Report Card</div>
+      <div id="weeklyReportCardBody"></div>
+    </div>
     <div class="card">
       <div class="card-title">📊 Weekly Calorie Balance</div>
       <div class="chart-wrap"><canvas id="balanceChart"></canvas></div>
@@ -1812,6 +1827,7 @@ function renderHistory(){
   const ctx=document.getElementById('histChart');
   if(histChart)histChart.destroy();
   histChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:cals,backgroundColor:'rgba(95,184,120,.7)',borderRadius:4}]},options:{plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#8b8f99',font:{size:10}},grid:{color:'#2a2e38'}},y:{ticks:{color:'#8b8f99',font:{size:10}},grid:{color:'#2a2e38'}}},responsive:true,maintainAspectRatio:false}});
+  renderMacroCharts(histPeriod);
   const tbody=document.getElementById('histTableBody');
   tbody.innerHTML=rows.slice().reverse().map(r=>`<tr${r.d===t?' class="today-row"':''}><td>${r.d.slice(5)}</td><td class="kcal-cell">${Math.round(r.cal)}</td><td>${Math.round(r.p)}g</td><td>${Math.round(r.c)}g</td><td>${Math.round(r.f)}g</td></tr>`).join('');
   const exLog=getExerciseLog().filter(e=>days.includes(e.date));
@@ -2278,6 +2294,7 @@ function clearMonthlyPool(){
 let balanceChart=null;
 function renderHealthReport(){
   document.getElementById('healthReportSection').style.display='';
+  renderWeeklyReportCard();
   document.querySelector('#tab-history .card:nth-child(2)').style.display='none';
   document.querySelector('#tab-history .card:nth-child(3)').style.display='none';
   document.querySelector('#tab-history .card:nth-child(4)').style.display='none';
@@ -2659,6 +2676,101 @@ function renderWeightGoal(){
     <div class="stat-row"><span class="sr-label">Estimated ETA</span><span class="sr-val" style="color:var(--accent);">${etaText}</span></div>
     ${loggedDays>0?`<div style="font-size:10px;color:var(--muted);margin-top:6px;">Based on ${loggedDays} logged day${loggedDays!==1?'s':''} in last 2 weeks</div>`:''}
   `;
+}
+
+// ── Feature 9: Progress Charts ────────────────────────────────────────────────
+let macroTrendChart=null,macroDonutChart=null;
+function renderMacroCharts(days){
+  const labels=[],pData=[],cData=[],fData=[];
+  const n=typeof days==='number'?days:7;
+  for(let i=n-1;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const data=getDayData(ds);
+    let p=0,c=0,f=0;
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(it=>{p+=(it.p||0);c+=(it.c||0);f+=(it.f||0);}));
+    labels.push(d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric'}));
+    pData.push(Math.round(p));cData.push(Math.round(c));fData.push(Math.round(f));
+  }
+  const ctx1=document.getElementById('macroTrendChart');
+  if(!ctx1)return;
+  if(macroTrendChart)macroTrendChart.destroy();
+  macroTrendChart=new Chart(ctx1,{type:'bar',data:{labels,datasets:[
+    {label:'Protein',data:pData,backgroundColor:'rgba(91,156,246,.85)',stack:'s'},
+    {label:'Carbs',data:cData,backgroundColor:'rgba(232,163,61,.85)',stack:'s'},
+    {label:'Fat',data:fData,backgroundColor:'rgba(255,124,92,.85)',stack:'s'},
+  ]},options:{plugins:{legend:{position:'bottom',labels:{color:'#8b8f99',boxWidth:10,font:{size:10}}}},scales:{x:{stacked:true,ticks:{color:'#8b8f99',font:{size:9}},grid:{color:'#2a2e38'}},y:{stacked:true,ticks:{color:'#8b8f99',font:{size:10}},grid:{color:'#2a2e38'}}},responsive:true,maintainAspectRatio:false}});
+  const totP=pData.reduce((s,x)=>s+x,0),totC=cData.reduce((s,x)=>s+x,0),totF=fData.reduce((s,x)=>s+x,0);
+  const tot=totP+totC+totF||1;
+  const ctx2=document.getElementById('macroDonutChart');
+  if(!ctx2)return;
+  if(macroDonutChart)macroDonutChart.destroy();
+  macroDonutChart=new Chart(ctx2,{type:'doughnut',data:{labels:['Protein','Carbs','Fat'],datasets:[{data:[totP,totC,totF],backgroundColor:['rgba(91,156,246,.9)','rgba(232,163,61,.9)','rgba(255,124,92,.9)'],borderWidth:0,hoverOffset:4}]},options:{plugins:{legend:{display:false}},cutout:'65%',responsive:true,maintainAspectRatio:false}});
+  const pct=v=>Math.round(v/tot*100);
+  const avg=v=>Math.round(v/n);
+  document.getElementById('macroDonutLegend').innerHTML=
+    `<div><span style="color:#5b9cf6;">●</span> P&nbsp;<b>${avg(totP)}g</b>&nbsp;<span style="color:var(--muted);font-size:10px;">${pct(totP)}%</span></div>
+     <div><span style="color:#e8a33d;">●</span> C&nbsp;<b>${avg(totC)}g</b>&nbsp;<span style="color:var(--muted);font-size:10px;">${pct(totC)}%</span></div>
+     <div><span style="color:#ff7c5c;">●</span> F&nbsp;<b>${avg(totF)}g</b>&nbsp;<span style="color:var(--muted);font-size:10px;">${pct(totF)}%</span></div>
+     <div style="font-size:10px;color:var(--muted);margin-top:4px;">avg/day</div>`;
+}
+
+// ── Feature 16: Weekly Report Card ────────────────────────────────────────────
+function renderWeeklyReportCard(){
+  const el=document.getElementById('weeklyReportCardBody');if(!el)return;
+  const goals=JSON.parse(localStorage.getItem(pk('goals'))||'{}');
+  const goalCal=goals.cal||2000;
+  let loggedDays=0,onGoalDays=0,goodWaterDays=0,totalAdh=0;
+  const dayScores=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toISOString().slice(0,10);
+    const data=getDayData(ds);
+    let cal=0;
+    const hasLog=['breakfast','lunch','dinner','extra','fullday'].some(m=>(data[m]||[]).length>0);
+    ['breakfast','lunch','dinner','extra','fullday'].forEach(m=>(data[m]||[]).forEach(it=>cal+=it.cal));
+    const water=getWater(ds);
+    if(hasLog)loggedDays++;
+    const adh=cal>0?Math.max(0,100-Math.abs(cal-goalCal)/goalCal*100):0;
+    if(cal>0&&cal<=goalCal*1.1)onGoalDays++;
+    if(water>=4)goodWaterDays++;
+    totalAdh+=adh;
+    dayScores.push({ds,cal,hasLog});
+  }
+  const avgAdh=totalAdh/7;
+  const conPct=loggedDays/7*100;
+  const watPct=goodWaterDays/7*100;
+  const score=Math.round(avgAdh*0.5+conPct*0.3+watPct*0.2);
+  let grade,gc,gm;
+  if(score>=90){grade='A+';gc='#5cffa1';gm='Outstanding week!';}
+  else if(score>=80){grade='A';gc='#5cffa1';gm='Great discipline!';}
+  else if(score>=70){grade='B';gc='#5b9cf6';gm='Good effort!';}
+  else if(score>=55){grade='C';gc='#e8a33d';gm='Room to improve.';}
+  else{grade='D';gc='#ff7c5c';gm='Keep going!';}
+  const bar=(v,c)=>`<div style="height:6px;border-radius:3px;background:var(--border);margin:3px 0 10px;"><div style="height:6px;border-radius:3px;background:${c};width:${Math.min(100,v)}%;transition:width .4s;"></div></div>`;
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:14px;">
+      <div style="font-size:60px;font-weight:900;color:${gc};line-height:1;">${grade}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;">${gm}</div>
+        <div style="font-size:11px;color:var(--muted);">Score: ${score}/100 · Last 7 days</div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span>🍽 Calorie accuracy</span><span style="font-weight:700;color:#5cffa1;">${Math.round(avgAdh)}%</span></div>${bar(avgAdh,'#5cffa1')}
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span>📅 Logging consistency</span><span style="font-weight:700;color:#5b9cf6;">${loggedDays}/7 days</span></div>${bar(conPct,'#5b9cf6')}
+      <div style="display:flex;justify-content:space-between;font-size:12px;"><span>💧 Water goal (4+ glasses)</span><span style="font-weight:700;color:#4fc3f7;">${goodWaterDays}/7 days</span></div>${bar(watPct,'#4fc3f7')}
+    </div>
+    <div style="margin-top:10px;display:flex;gap:4px;">
+      ${dayScores.map(d=>{
+        const col=d.cal<=0?'var(--border)':d.cal<=goalCal*1.1?'#5cffa1':'#e8a33d';
+        const day=new Date(d.ds+'T00:00:00').toLocaleDateString('en-IN',{weekday:'short'});
+        return `<div style="flex:1;text-align:center;padding:6px 2px;border-radius:8px;background:var(--border);">
+          <div style="font-size:9px;color:var(--muted);">${day}</div>
+          <div style="font-size:10px;font-weight:700;color:${col};">${d.cal?d.cal:'—'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
 }
 
 // ── Feature 7: Weekly Meal Planner ───────────────────────────────────────────
