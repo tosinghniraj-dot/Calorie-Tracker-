@@ -214,7 +214,7 @@ input[type=time]{color-scheme:dark;}
 <div class="app-header">
   <div>
     <h1>🍽️ Calorie Tracker</h1>
-    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.7</span> <span style="color:var(--muted);font-size:10px;">· 17 Nov 2026</span></div>
+    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.8</span> <span style="color:var(--muted);font-size:10px;">· 17 Nov 2026</span></div>
   </div>
   <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
     <div id="pillAvatar" style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#0f1115;overflow:hidden;flex-shrink:0;"></div>
@@ -922,6 +922,10 @@ input[type=time]{color-scheme:dark;}
         <div><label>Fat (g)</label><input type="number" id="cF" placeholder="g"></div>
         <div><label>Sugar (g)</label><input type="number" id="cS" placeholder="g"></div>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0 2px;">
+        <input type="checkbox" id="cSaveToMyFoods" style="width:16px;height:16px;accent-color:var(--accent);cursor:pointer;">
+        <label for="cSaveToMyFoods" style="margin:0;font-size:13px;color:var(--muted);cursor:pointer;">Save to My Foods (reuse later)</label>
+      </div>
       <button class="btn-p" onclick="addCustomFood()">Add to Meal</button>
       <div class="err" id="customErr"></div>
     </div>
@@ -1255,6 +1259,51 @@ const FOODS=[
   {name:'Potato Chips',cat:'Snacks',unit:'30g',cal:154,p:1.8,c:17,f:9,s:0.2},
   {name:'Cream Cookies',cat:'Snacks',unit:'4 pieces (40g)',cal:190,p:2,c:26,f:9,s:14},
   {name:'Dhokla (steamed)',cat:'Snacks',unit:'2 pieces (80g)',cal:130,p:5,c:22,f:2.5,s:1},
+  // Instant & Ready-to-Cook
+  {name:'Maggi Masala Noodles',cat:'Instant & Ready',unit:'1 packet (70g dry)',cal:308,p:7,c:43,f:12,s:0.5},
+  {name:'Maggi Atta Noodles',cat:'Instant & Ready',unit:'1 packet (70g dry)',cal:265,p:9,c:46,f:5,s:0.5},
+  {name:'Maggi Oats Noodles',cat:'Instant & Ready',unit:'1 packet (60g dry)',cal:235,p:8,c:40,f:5,s:0.4},
+  {name:'Yippee Magic Masala Noodles',cat:'Instant & Ready',unit:'1 packet (66g dry)',cal:290,p:6,c:42,f:11,s:0.5},
+  {name:'Top Ramen Masala Noodles',cat:'Instant & Ready',unit:'1 packet (70g dry)',cal:285,p:7,c:43,f:10,s:0.5},
+  {name:'Cup Noodles Masala',cat:'Instant & Ready',unit:'1 cup (75g)',cal:335,p:7,c:46,f:13,s:0.6},
+  {name:'Knorr Tomato Soup',cat:'Instant & Ready',unit:'1 cup prepared (250ml)',cal:65,p:2,c:12,f:1,s:3},
+  {name:'Knorr Mixed Veg Soup',cat:'Instant & Ready',unit:'1 cup prepared (250ml)',cal:70,p:2.5,c:13,f:1,s:3},
+  {name:'MTR Palak Paneer (ready meal)',cat:'Instant & Ready',unit:'1 pack (300g)',cal:320,p:14,c:18,f:20,s:5},
+  {name:'MTR Chana Masala (ready meal)',cat:'Instant & Ready',unit:'1 pack (300g)',cal:310,p:14,c:44,f:7,s:3},
+  {name:'MTR Dal Makhani (ready meal)',cat:'Instant & Ready',unit:'1 pack (285g)',cal:390,p:16,c:44,f:16,s:3},
+  {name:'Haldiram Palak Paneer (ready meal)',cat:'Instant & Ready',unit:'1 pack (285g)',cal:330,p:15,c:20,f:20,s:4},
+  {name:'Haldiram Dal Makhani (ready meal)',cat:'Instant & Ready',unit:'1 pack (285g)',cal:385,p:16,c:42,f:17,s:4},
+  {name:'Popcorn (microwave)',cat:'Instant & Ready',unit:'1 bag prepared (90g)',cal:350,p:9,c:48,f:14,s:0.5},
+  // Indian Chinese
+  {name:'Veg Momos (steamed)',cat:'Indian Chinese',unit:'6 pieces (120g)',cal:200,p:7,c:36,f:3,s:2},
+  {name:'Chicken Momos (steamed)',cat:'Indian Chinese',unit:'6 pieces (130g)',cal:240,p:16,c:30,f:7,s:1},
+  {name:'Fried Momos',cat:'Indian Chinese',unit:'6 pieces (130g)',cal:300,p:8,c:38,f:13,s:2},
+  {name:'Veg Chowmein',cat:'Indian Chinese',unit:'1 plate (250g)',cal:350,p:8,c:55,f:11,s:4},
+  {name:'Chicken Chowmein',cat:'Indian Chinese',unit:'1 plate (250g)',cal:390,p:18,c:52,f:12,s:4},
+  {name:'Veg Manchurian (gravy)',cat:'Indian Chinese',unit:'1 katori (200g)',cal:220,p:5,c:32,f:8,s:4},
+  {name:'Chicken Manchurian (gravy)',cat:'Indian Chinese',unit:'1 katori (200g)',cal:270,p:18,c:28,f:9,s:4},
+  {name:'Veg Fried Rice',cat:'Indian Chinese',unit:'1 plate (250g)',cal:350,p:7,c:60,f:9,s:5},
+  {name:'Egg Fried Rice',cat:'Indian Chinese',unit:'1 plate (250g)',cal:390,p:14,c:58,f:11,s:5},
+  {name:'Chicken Fried Rice',cat:'Indian Chinese',unit:'1 plate (250g)',cal:410,p:20,c:56,f:12,s:5},
+  {name:'Schezwan Fried Rice',cat:'Indian Chinese',unit:'1 plate (250g)',cal:380,p:8,c:60,f:12,s:4},
+  {name:'Spring Roll (fried)',cat:'Indian Chinese',unit:'2 pieces (100g)',cal:220,p:5,c:28,f:10,s:3},
+  // Fast Food additions
+  {name:'Pizza Margherita (1 slice)',cat:'Street Food',unit:'1 slice (100g)',cal:230,p:10,c:28,f:8,s:4},
+  {name:'Pizza Veg (1 slice)',cat:'Street Food',unit:'1 slice (100g)',cal:240,p:9,c:30,f:9,s:4},
+  {name:'McAloo Tikki Burger',cat:'Street Food',unit:'1 piece (160g)',cal:320,p:7,c:42,f:14,s:3},
+  {name:'Veg Burger',cat:'Street Food',unit:'1 piece (150g)',cal:340,p:9,c:44,f:14,s:4},
+  {name:'French Fries (medium)',cat:'Street Food',unit:'1 serving (117g)',cal:320,p:4,c:44,f:15,s:0.3},
+  {name:'Chicken Nuggets (6 pcs)',cat:'Street Food',unit:'6 pieces (96g)',cal:270,p:15,c:16,f:16,s:0.5},
+  {name:'Hot Dog / Veg Frank',cat:'Street Food',unit:'1 piece (120g)',cal:260,p:9,c:30,f:11,s:4},
+  // Bihar/UP & regional sweets
+  {name:'Thekua',cat:'Sweets',unit:'1 piece (40g)',cal:170,p:2.5,c:25,f:7,s:12},
+  {name:'Khaja',cat:'Sweets',unit:'1 piece (35g)',cal:155,p:2,c:24,f:6,s:10},
+  {name:'Tilkut (Sesame)',cat:'Sweets',unit:'1 piece (30g)',cal:140,p:3,c:18,f:7,s:12},
+  {name:'Gajak (Til-Jaggery)',cat:'Sweets',unit:'1 piece (30g)',cal:130,p:3,c:17,f:6,s:10},
+  {name:'Rewri',cat:'Sweets',unit:'10 pieces (20g)',cal:90,p:1.5,c:12,f:4,s:8},
+  {name:'Chikki (Peanut)',cat:'Snacks',unit:'1 piece (25g)',cal:120,p:3,c:14,f:6,s:8},
+  {name:'Balushahi',cat:'Sweets',unit:'1 piece (40g)',cal:180,p:2,c:22,f:9,s:14},
+  {name:'Moti Choor Ladoo',cat:'Sweets',unit:'1 piece (35g)',cal:150,p:2.5,c:22,f:6,s:14},
 ];
 
 const EXERCISE_BURNS={Walking:4,Running:10,Yoga:3,Cycling:7,Swimming:8,Gym:6,Other:5};
@@ -1684,14 +1733,32 @@ function closeDrawer(){
 function searchFoods(){
   const q=document.getElementById('foodSearch').value.toLowerCase().trim();
   const el=document.getElementById('foodResults');
-  if(!q){el.innerHTML='';return;}
+  if(!q){
+    const myF=getMyFoods();
+    if(myF.length){el.innerHTML='<div style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:4px 0 2px;">⭐ My Foods</div>'+myF.map(f=>`<div class="ri" onclick="selectMyFood('${encodeURIComponent(f.name)}')"><div><div class="rname">⭐ ${f.name}</div><div class="rmeta">${f.unit} · P${f.p}g C${f.c}g F${f.f}g</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><span class="rcal">${f.cal} kcal</span><span onclick="event.stopPropagation();deleteMyFood('${f.name}')" style="font-size:10px;color:var(--muted);cursor:pointer;">✕ remove</span></div></div>`).join('');}
+    else el.innerHTML='';
+    return;
+  }
+  const myHits=getMyFoods().filter(f=>f.name.toLowerCase().includes(q));
   const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q)).slice(0,12);
   const rHits=getRecipes().filter(r=>r.name.toLowerCase().includes(q)).slice(0,3);
+  const myItems=myHits.map(f=>`<div class="ri" onclick="selectMyFood('${encodeURIComponent(f.name)}')"><div><div class="rname">⭐ ${f.name}<span class="tag">My Foods</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`);
   const recipeItems=rHits.map(r=>`<div class="ri" onclick="selectFoodRecipe('${r.id}')"><div><div class="rname">🍳 ${r.name}<span class="tag">Recipe</span></div><div class="rmeta">per serving · P${r.per.p}g C${r.per.c}g F${r.per.f}g</div></div><span class="rcal">${r.per.cal} kcal</span></div>`);
   const foodItems=hits.map(f=>`<div class="ri" onclick="selectFood('${f.name}')"><div><div class="rname">${f.name}<span class="tag">${f.cat}</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`);
-  const all=[...recipeItems,...foodItems];
+  const all=[...myItems,...recipeItems,...foodItems];
   if(!all.length){el.innerHTML='<div class="es">No results</div>';return;}
   el.innerHTML=all.join('');
+}
+function selectMyFood(encodedName){
+  const name=decodeURIComponent(encodedName);
+  const f=getMyFoods().find(x=>x.name===name);if(!f)return;
+  selFood={...f};
+  document.getElementById('selFoodName').textContent='⭐ '+f.name;
+  document.getElementById('selFoodMeta').textContent=(f.unit||'custom')+' · '+f.cal+' kcal · P'+f.p+'g C'+f.c+'g F'+f.f+'g';
+  document.getElementById('qtyInput').value=1;
+  document.getElementById('qtyUnitLabel').textContent='× '+(f.unit||'serving');
+  document.getElementById('selectedFoodDiv').style.display='block';
+  updateSelTotal();
 }
 function selectFoodRecipe(id){
   const r=getRecipes().find(x=>x.id===id);if(!r)return;
@@ -1733,6 +1800,18 @@ function addFoodToMeal(){
   closeDrawer();
 }
 
+function getMyFoods(){return JSON.parse(localStorage.getItem(pk('my_foods'))||'[]');}
+function saveMyFoodItem(item){
+  let arr=getMyFoods();
+  if(!arr.find(x=>x.name===item.name))arr.unshift(item);
+  localStorage.setItem(pk('my_foods'),JSON.stringify(arr.slice(0,50)));
+}
+function deleteMyFood(name){
+  let arr=getMyFoods().filter(x=>x.name!==name);
+  localStorage.setItem(pk('my_foods'),JSON.stringify(arr));
+  searchFoods();
+}
+
 function addCustomFood(){
   const name=document.getElementById('cName').value.trim();
   const cal=parseFloat(document.getElementById('cCal').value)||0;
@@ -1741,14 +1820,17 @@ function addCustomFood(){
   const c=parseFloat(document.getElementById('cC').value)||0;
   const f=parseFloat(document.getElementById('cF').value)||0;
   const s=parseFloat(document.getElementById('cS').value)||0;
+  const saveIt=document.getElementById('cSaveToMyFoods').checked;
+  if(saveIt) saveMyFoodItem({name,cat:'My Foods',unit:'custom',cal,p,c,f,s});
   const data=getDayData(currentDate);
   if(!data[currentMeal])data[currentMeal]=[];
   data[currentMeal].push({name,qty:1,unit:'',cal,p,c,f,s});
   saveDayData(currentDate,data);renderMeals();renderTotals();
-  toast(name+' added');closeDrawer();
+  toast(name+' added'+(saveIt?' & saved':''));closeDrawer();
   document.getElementById('cName').value='';document.getElementById('cCal').value='';
   document.getElementById('cP').value='';document.getElementById('cC').value='';
   document.getElementById('cF').value='';document.getElementById('cS').value='';
+  document.getElementById('cSaveToMyFoods').checked=false;
   document.getElementById('customErr').textContent='';
 }
 
