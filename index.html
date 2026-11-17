@@ -214,9 +214,10 @@ input[type=time]{color-scheme:dark;}
 <div class="app-header">
   <div>
     <h1>🍽️ Calorie Tracker</h1>
-    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.6</span> <span style="color:var(--muted);font-size:10px;">· 16 Nov 2026</span></div>
+    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.7</span> <span style="color:var(--muted);font-size:10px;">· 17 Nov 2026</span></div>
   </div>
   <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
+    <div id="pillAvatar" style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#0f1115;overflow:hidden;flex-shrink:0;"></div>
     <span id="profileName">Me</span> ▾
   </div>
 </div>
@@ -970,14 +971,73 @@ input[type=time]{color-scheme:dark;}
 </div>
 
 <!-- Profile Drawer -->
+<input type="file" id="profilePhotoInput" accept="image/*" style="display:none;" onchange="handleProfilePhoto(this)">
 <div class="drawer" id="profileDrawer">
   <div class="drawer-handle"></div>
   <div class="drawer-head">
-    <div class="drawer-title">Switch Profile</div>
+    <div class="drawer-title">My Profile</div>
     <button class="drawer-close" onclick="closeDrawer()">×</button>
   </div>
   <div class="drawer-body">
-    <div id="profileDrawerList"></div>
+    <!-- View mode -->
+    <div id="profileCardView">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div id="profileAvatarLarge" onclick="triggerPhotoUpload()" style="width:84px;height:84px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:#0f1115;overflow:hidden;position:relative;cursor:pointer;border:3px solid var(--border);"></div>
+        <div style="position:relative;display:inline-block;margin-top:-18px;margin-left:52px;background:var(--border);border-radius:50%;width:22px;height:22px;line-height:22px;text-align:center;font-size:12px;cursor:pointer;" onclick="triggerPhotoUpload()">📷</div>
+        <div style="margin-top:4px;font-size:17px;font-weight:800;" id="profileDisplayName">Me</div>
+        <div style="font-size:12px;color:var(--muted);" id="profileSubtitle"></div>
+      </div>
+      <!-- Stats row -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <div style="flex:1;text-align:center;background:var(--border);border-radius:10px;padding:8px 2px;">
+          <div style="font-size:17px;font-weight:800;color:var(--accent);" id="psBMI">—</div>
+          <div style="font-size:9px;color:var(--muted);">BMI</div>
+        </div>
+        <div style="flex:1;text-align:center;background:var(--border);border-radius:10px;padding:8px 2px;">
+          <div style="font-size:17px;font-weight:800;" id="psWeight">—</div>
+          <div style="font-size:9px;color:var(--muted);">kg</div>
+        </div>
+        <div style="flex:1;text-align:center;background:var(--border);border-radius:10px;padding:8px 2px;">
+          <div style="font-size:17px;font-weight:800;color:#5b9cf6;" id="psTargetBMI">—</div>
+          <div style="font-size:9px;color:var(--muted);">Target BMI</div>
+        </div>
+        <div style="flex:1;text-align:center;background:var(--border);border-radius:10px;padding:8px 2px;">
+          <div style="font-size:17px;font-weight:800;color:#e8a33d;" id="psGoalCal">—</div>
+          <div style="font-size:9px;color:var(--muted);">kcal/day</div>
+        </div>
+      </div>
+      <!-- Info rows -->
+      <div id="profileInfoRows" style="margin-bottom:12px;font-size:13px;"></div>
+      <button class="btn-p" style="width:100%;margin-bottom:14px;" onclick="openProfileEdit()">✏️ Edit Profile</button>
+      <!-- Profile switcher -->
+      <div style="border-top:1px solid var(--border);padding-top:10px;">
+        <div style="font-size:10px;color:var(--muted);letter-spacing:.5px;margin-bottom:8px;">PROFILES</div>
+        <div id="profileDrawerList"></div>
+      </div>
+    </div>
+    <!-- Edit mode -->
+    <div id="profileEditForm" style="display:none;">
+      <div style="font-size:14px;font-weight:700;margin-bottom:14px;">Edit Profile</div>
+      <label>Display Name</label>
+      <input id="pfName" type="text" placeholder="Your name" style="width:100%;margin-bottom:10px;background:var(--border);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:14px;box-sizing:border-box;outline:none;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="flex:1;"><label>Age</label><input id="pfAge" type="number" min="1" max="120" placeholder="e.g. 28" style="width:100%;background:var(--border);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:14px;box-sizing:border-box;outline:none;"></div>
+        <div style="flex:1;"><label>Gender</label><select id="pfGender" style="width:100%;background:var(--border);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:14px;box-sizing:border-box;outline:none;"><option value="">Select…</option><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select></div>
+      </div>
+      <label>City / Location</label>
+      <input id="pfLocation" type="text" placeholder="e.g. Mumbai" style="width:100%;margin-bottom:10px;background:var(--border);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:14px;box-sizing:border-box;outline:none;">
+      <label>Goal</label>
+      <select id="pfGoal" style="width:100%;margin-bottom:16px;background:var(--border);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:9px 10px;font-size:14px;box-sizing:border-box;outline:none;">
+        <option value="">Select…</option>
+        <option value="Lose weight">Lose weight</option>
+        <option value="Maintain weight">Maintain weight</option>
+        <option value="Gain weight">Gain weight</option>
+        <option value="Build muscle">Build muscle</option>
+        <option value="Eat healthier">Eat healthier</option>
+      </select>
+      <button class="btn-p" style="width:100%;margin-bottom:8px;" onclick="saveProfileEdit()">💾 Save Profile</button>
+      <button class="btn-s" style="width:100%;" onclick="cancelProfileEdit()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -2078,15 +2138,110 @@ function delProfile(name){
 function setProfile(name){
   activeProfile=name;
   loadGoals();loadReminders();renderDay();renderProfiles();
+  updateProfilePill();
 }
 function cycleProfile(){
-  const profiles=getProfiles();
-  if(profiles.length<=1){openDrawer('profileDrawer');renderProfileDrawer();return;}
   openDrawer('profileDrawer');renderProfileDrawer();
 }
+// ── Profile Info ──────────────────────────────────────────────────────────────
+function getProfileInfo(){return JSON.parse(localStorage.getItem(pk('profile_info'))||'{}');}
+function saveProfileInfoData(d){localStorage.setItem(pk('profile_info'),JSON.stringify(d));showSaveDot();}
+function getProfilePhoto(){return localStorage.getItem(pk('profile_photo'))||'';}
+function saveProfilePhoto(b64){localStorage.setItem(pk('profile_photo'),b64);showSaveDot();}
+
+function updateProfilePill(){
+  const info=getProfileInfo();
+  const photo=getProfilePhoto();
+  const name=info.displayName||(activeProfile==='default'?'Me':activeProfile);
+  document.getElementById('profileName').textContent=name;
+  const av=document.getElementById('pillAvatar');
+  if(photo){av.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;}
+  else{av.textContent=name.charAt(0).toUpperCase();}
+}
+
 function renderProfileDrawer(){
+  // Switch view to card view
+  document.getElementById('profileCardView').style.display='';
+  document.getElementById('profileEditForm').style.display='none';
+  const info=getProfileInfo();
+  const photo=getProfilePhoto();
+  const name=info.displayName||(activeProfile==='default'?'Me':activeProfile);
+  // Avatar
+  const av=document.getElementById('profileAvatarLarge');
+  if(photo){av.innerHTML=`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;">`;}
+  else{av.textContent=name.charAt(0).toUpperCase();}
+  document.getElementById('profileDisplayName').textContent=name;
+  // Subtitle
+  const parts=[];
+  if(info.age)parts.push(info.age+'y');
+  if(info.gender)parts.push(info.gender);
+  if(info.location)parts.push('📍'+info.location);
+  document.getElementById('profileSubtitle').textContent=parts.join(' · ')||'Tap ✏️ to add details';
+  // Stats
+  const wlog=getWeightLog();
+  const latestW=wlog.length?wlog[wlog.length-1].kg:null;
+  const height=parseFloat(localStorage.getItem(pk('height'))||'0');
+  const bmi=latestW&&height?+(latestW/((height/100)**2)).toFixed(1):null;
+  const targetBmi=parseFloat(localStorage.getItem(pk('target_bmi'))||'0')||null;
+  const goals=getGoals();
+  document.getElementById('psBMI').textContent=bmi||'—';
+  document.getElementById('psWeight').textContent=latestW||'—';
+  document.getElementById('psTargetBMI').textContent=targetBmi||'—';
+  document.getElementById('psGoalCal').textContent=goals.cal;
+  // Info rows
+  const rows=[];
+  if(info.goal)rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;">🎯</span><div><div style="font-size:11px;color:var(--muted);">Goal</div><div style="font-weight:600;">${info.goal}</div></div></div>`);
+  if(info.age)rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;">🎂</span><div><div style="font-size:11px;color:var(--muted);">Age</div><div style="font-weight:600;">${info.age} years</div></div></div>`);
+  if(info.gender)rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;">👤</span><div><div style="font-size:11px;color:var(--muted);">Gender</div><div style="font-weight:600;">${info.gender}</div></div></div>`);
+  if(info.location)rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;">📍</span><div><div style="font-size:11px;color:var(--muted);">Location</div><div style="font-weight:600;">${info.location}</div></div></div>`);
+  if(height)rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);"><span style="font-size:16px;">📏</span><div><div style="font-size:11px;color:var(--muted);">Height</div><div style="font-weight:600;">${height} cm</div></div></div>`);
+  if(latestW)rows.push(`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;"><span style="font-size:16px;">⚖️</span><div><div style="font-size:11px;color:var(--muted);">Current Weight</div><div style="font-weight:600;">${latestW} kg</div></div></div>`);
+  document.getElementById('profileInfoRows').innerHTML=rows.join('')||'<div style="font-size:12px;color:var(--muted);padding:8px 0;">No details added yet.</div>';
+  // Profile list
   const profiles=getProfiles();
-  document.getElementById('profileDrawerList').innerHTML=profiles.map(p=>`<div class="ri" onclick="setProfile('${p}');closeDrawer();" style="margin-bottom:4px;"><span style="font-size:14px;font-weight:600;${p===activeProfile?'color:var(--accent);':''}">${p==='default'?'Me':p}</span>${p===activeProfile?'<span style="color:var(--accent);font-size:12px;">✓ Active</span>':''}</div>`).join('');
+  document.getElementById('profileDrawerList').innerHTML=profiles.map(p=>`<div class="ri" onclick="setProfile('${p}');closeDrawer();" style="margin-bottom:4px;"><span style="font-size:14px;font-weight:600;${p===activeProfile?'color:var(--accent);':''}">${p==='default'?'Me':p}</span>${p===activeProfile?'<span style="color:var(--accent);font-size:12px;margin-left:auto;">✓ Active</span>':''}</div>`).join('');
+}
+function openProfileEdit(){
+  const info=getProfileInfo();
+  document.getElementById('pfName').value=info.displayName||'';
+  document.getElementById('pfAge').value=info.age||'';
+  document.getElementById('pfGender').value=info.gender||'';
+  document.getElementById('pfLocation').value=info.location||'';
+  document.getElementById('pfGoal').value=info.goal||'';
+  document.getElementById('profileCardView').style.display='none';
+  document.getElementById('profileEditForm').style.display='';
+}
+function cancelProfileEdit(){
+  document.getElementById('profileCardView').style.display='';
+  document.getElementById('profileEditForm').style.display='none';
+}
+function saveProfileEdit(){
+  const info=getProfileInfo();
+  const name=document.getElementById('pfName').value.trim();
+  info.displayName=name||info.displayName;
+  info.age=document.getElementById('pfAge').value||'';
+  info.gender=document.getElementById('pfGender').value;
+  info.location=document.getElementById('pfLocation').value.trim();
+  info.goal=document.getElementById('pfGoal').value;
+  saveProfileInfoData(info);
+  updateProfilePill();
+  document.getElementById('profileCardView').style.display='';
+  document.getElementById('profileEditForm').style.display='none';
+  renderProfileDrawer();
+  toast('Profile saved!');
+}
+function triggerPhotoUpload(){document.getElementById('profilePhotoInput').click();}
+function handleProfilePhoto(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    saveProfilePhoto(e.target.result);
+    updateProfilePill();
+    renderProfileDrawer();
+    toast('Photo updated!');
+  };
+  reader.readAsDataURL(file);
+  input.value='';
 }
 
 // ── Export ────────────────────────────────────────────────────────────────────
@@ -2519,7 +2674,7 @@ function init(){
   else if(h>=17)comboCat='dinner';
   else comboCat='breakfast';
   setComboCat(comboCat);
-  loadGoals();loadReminders();renderProfiles();renderDay();renderRecent();
+  loadGoals();loadReminders();renderProfiles();renderDay();renderRecent();updateProfilePill();
   // Set default date fields
   const t=today();
   ['sugarDate','bpDate','fatDate'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=t;});
@@ -2579,7 +2734,7 @@ function handleRestore(input){
       Object.entries(bk.data).forEach(([k,v])=>localStorage.setItem(k,v));
       // switch to restored profile if different
       if(bk.profile&&bk.profile!==activeProfile){activeProfile=bk.profile;}
-      loadGoals();loadReminders();renderProfiles();renderDay();renderRecent();
+      loadGoals();loadReminders();renderProfiles();renderDay();renderRecent();updateProfilePill();
       alert('✅ Restore complete! '+count+' records loaded.');
     }catch(err){alert('❌ Could not restore: '+err.message);}
   };
