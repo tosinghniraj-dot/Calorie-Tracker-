@@ -13,6 +13,8 @@
 <link rel="apple-touch-icon" href="./icon.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600;700&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
 :root{--bg:#0b0e17;--card:#161d2e;--accent:#4ade80;--accent2:#fbbf24;--text:#e8ecf4;--muted:#6b7592;--danger:#e05c5c;--border:#252d42;--c-bf:#ff9f43;--c-lu:#26de81;--c-dn:#a29bfe;--c-ex:#fd79a8;--cal-a:#ff6348;--cal-b:#ff9f43;--protein:#4ade80;--carbs:#fbbf24;--fat:#60a5fa;--water:#38bdf8;--sugar:#f472b6;--input-bg:#0e1223;--nav-h:60px;}
 *{box-sizing:border-box;}
@@ -300,6 +302,16 @@ input[type=time]{color-scheme:dark;}
     <div style="text-align:right;margin-top:6px;font-size:11px;color:var(--muted);">
       Auto-saved<span class="save-dot" id="saveDot"></span>
     </div>
+  </div>
+
+  <!-- Download Report Row -->
+  <div style="display:flex;gap:8px;margin:4px 0 8px;">
+    <button onclick="downloadReportJPG()" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:12px;font-weight:600;padding:10px 6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+      📷 <span>Save as JPG</span>
+    </button>
+    <button onclick="downloadReportPDF()" style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:12px;font-weight:600;padding:10px 6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;">
+      📄 <span>Save as PDF</span>
+    </button>
   </div>
 
   <div id="fastingFoodsSection" style="display:none;">
@@ -3471,6 +3483,134 @@ function renderStreaks(){
     </div>`;
   }).join('');
   el.innerHTML=html+rows;
+}
+
+// ── Download Report ───────────────────────────────────────────────────────────
+function getReportData(){
+  const data=getDayData(currentDate);
+  const goals=getGoals();
+  const info=getProfileInfo();
+  const name=info.name||getCurrentProfile();
+  const water=getWater(currentDate);
+  const meals=['breakfast','lunch','dinner','extra','fullday'];
+  const mealNames={'breakfast':'Breakfast','lunch':'Lunch','dinner':'Dinner','extra':'Snacks / Extra','fullday':'Full Day Log'};
+  let totCal=0,totP=0,totC=0,totF=0,totS=0;
+  const mealSections=[];
+  meals.forEach(m=>{
+    const items=data[m]||[];
+    if(!items.length)return;
+    let mCal=0,rows=[];
+    items.forEach(it=>{
+      const kcal=Math.round(it.cal*it.qty);
+      totCal+=kcal;totP+=it.p*it.qty;totC+=it.c*it.qty;totF+=it.f*it.qty;totS+=(it.s||0)*it.qty;
+      mCal+=kcal;
+      rows.push({name:it.name,qty:it.qty,unit:it.unit,cal:kcal,p:Math.round(it.p*it.qty),c:Math.round(it.c*it.qty),f:Math.round(it.f*it.qty)});
+    });
+    mealSections.push({label:mealNames[m],cal:mCal,rows});
+  });
+  const dateLabel=new Date(currentDate+'T12:00:00').toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  return{name,dateLabel,goals,water,totCal:Math.round(totCal),totP:Math.round(totP),totC:Math.round(totC),totF:Math.round(totF),totS:Math.round(totS),mealSections};
+}
+
+async function downloadReportJPG(){
+  toast('Preparing JPG…');
+  const captureEl=document.getElementById('tab-today');
+  try{
+    const canvas=await html2canvas(captureEl,{backgroundColor:'#0b0e17',scale:2,useCORS:true,logging:false,scrollY:-window.scrollY});
+    const link=document.createElement('a');
+    link.download='calorie-report-'+currentDate+'.jpg';
+    link.href=canvas.toDataURL('image/jpeg',0.92);
+    link.click();
+    toast('JPG saved!');
+  }catch(e){toast('JPG failed: '+e.message);}
+}
+
+function downloadReportPDF(){
+  if(typeof window.jspdf==='undefined'&&typeof jspdf==='undefined'){toast('PDF library loading…');setTimeout(downloadReportPDF,800);return;}
+  const {jsPDF}=window.jspdf||jspdf;
+  const d=getReportData();
+  const doc=new jsPDF({unit:'mm',format:'a4',orientation:'portrait'});
+  const W=210,M=16,CW=W-M*2;
+  let y=18;
+  const ln=(t,sz,bold,color,cx)=>{
+    doc.setFontSize(sz||11);
+    doc.setFont('helvetica',bold?'bold':'normal');
+    if(color)doc.setTextColor(...color);else doc.setTextColor(30,30,30);
+    if(cx)doc.text(t,W/2,y,{align:'center'});
+    else doc.text(t,M,y);
+    y+=sz?sz*0.45+1.5:6;
+  };
+  const rule=(c)=>{doc.setDrawColor(...(c||[200,200,200]));doc.line(M,y,W-M,y);y+=4;};
+
+  // Header
+  doc.setFillColor(255,99,72);doc.rect(0,0,W,14,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(14);doc.setTextColor(255,255,255);
+  doc.text('🍽  Calorie Tracker — Daily Report',M,9.5);
+  y=22;
+
+  // Date + Profile
+  ln(d.dateLabel,12,true,[40,40,40],true);
+  ln('Profile: '+d.name,10,false,[90,90,90],true);
+  y+=3;rule([220,220,220]);
+
+  // Summary box
+  doc.setFillColor(248,248,248);doc.roundedRect(M,y,CW,34,3,3,'F');
+  const col=M+6,col2=M+CW/2;
+  y+=8;
+  ln('DAILY SUMMARY',9,true,[150,150,150]);
+  y+=1;
+  doc.setFontSize(11);doc.setFont('helvetica','bold');
+  const pct=(v,g)=>g?Math.round(v/g*100)+'%':'—';
+  const macroRow=(label,val,goal,unit,color)=>{
+    doc.setTextColor(...color);doc.setFont('helvetica','bold');doc.setFontSize(10);
+    doc.text(label,col,y);
+    doc.setTextColor(30,30,30);doc.text(val+(unit||''),col+30,y);
+    doc.setTextColor(100,100,100);doc.setFont('helvetica','normal');doc.setFontSize(9);
+    doc.text('/ '+(goal||'—')+(unit||'')+'  ('+pct(parseFloat(val),goal)+')',col+30+doc.getTextWidth(val+(unit||''))+2,y);
+    y+=5.5;
+  };
+  macroRow('Calories',d.totCal,d.goals.cal,' kcal',[220,80,50]);
+  macroRow('Protein',d.totP,d.goals.p,'g',[50,180,80]);
+  macroRow('Carbs',d.totC,d.goals.c,'g',[220,170,30]);
+  macroRow('Fat',d.totF,d.goals.f,'g',[80,150,230]);
+  doc.setTextColor(100,100,100);doc.setFont('helvetica','normal');doc.setFontSize(9);
+  doc.text('Sugar: '+d.totS+'g',col,y);
+  doc.text('Water: '+d.water+' ml ('+Math.floor(d.water/250)+' glasses)',col2,y);
+  y+=10;rule([200,200,200]);
+
+  // Meals
+  ln('MEAL LOG',10,true,[80,80,80]);
+  y+=1;
+  d.mealSections.forEach(ms=>{
+    if(y>265){doc.addPage();y=18;}
+    doc.setFillColor(240,240,240);doc.rect(M,y-4,CW,7,'F');
+    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(40,40,40);
+    doc.text(ms.label,M+2,y);
+    doc.text(ms.cal+' kcal',W-M-2,y,{align:'right'});
+    y+=6;
+    ms.rows.forEach(r=>{
+      if(y>272){doc.addPage();y=18;}
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(50,50,50);
+      const qtyStr=r.qty!==1?r.qty+'×  ':'';
+      doc.text(qtyStr+r.name,M+4,y);
+      doc.setTextColor(180,100,40);doc.setFont('helvetica','bold');
+      doc.text(r.cal+' kcal',W-M-2,y,{align:'right'});
+      doc.setFont('helvetica','normal');doc.setTextColor(130,130,130);doc.setFontSize(8);
+      doc.text('P'+r.p+'g  C'+r.c+'g  F'+r.f+'g',M+4,y+3.5);
+      y+=8;
+    });
+    y+=2;
+  });
+
+  // Footer
+  if(y<270){
+    rule([220,220,220]);
+    doc.setFontSize(8);doc.setTextColor(170,170,170);doc.setFont('helvetica','normal');
+    doc.text('Generated by Calorie Tracker PWA · '+new Date().toLocaleString('en-IN'),W/2,y+4,{align:'center'});
+  }
+
+  doc.save('calorie-report-'+currentDate+'.pdf');
+  toast('PDF saved!');
 }
 </script>
 </body>

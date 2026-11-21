@@ -1,4 +1,4 @@
-const CACHE = 'calorie-tracker-v26';
+const CACHE = 'calorie-tracker-v27';
 const ASSETS = ['./','./index.html','./manifest.json','./icon.svg'];
 
 self.addEventListener('install', e => {
