@@ -109,7 +109,6 @@ input[type=time]{color-scheme:dark;}
 .btn-s{background:var(--border);color:var(--text);border:none;border-radius:10px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px;}
 .btn-sm{background:var(--border);color:var(--text);border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;}
 .results{margin-top:10px;max-height:200px;overflow-y:auto;}
-.ri{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
 .ri:hover,.ri.sel{background:var(--input-bg);}
 #pillAvatar{background:linear-gradient(135deg,var(--cal-a),var(--cal-b))!important;color:#fff!important;}
 .rname{font-size:14px;font-weight:600;}
@@ -117,6 +116,19 @@ input[type=time]{color-scheme:dark;}
 .rcal{font-size:13px;font-weight:700;color:var(--accent2);white-space:nowrap;}
 .tag{display:inline-block;background:#22262f;border-radius:4px;padding:1px 6px;font-size:10px;color:var(--muted);margin-left:6px;vertical-align:middle;}
 .es{color:var(--muted);font-size:13px;text-align:center;padding:16px 0;}
+.fet{width:36px;height:36px;min-width:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;flex-shrink:0;}
+.fet.cg{background:linear-gradient(135deg,#f59e0b22,#f59e0b44);}
+.fet.cl{background:linear-gradient(135deg,#4ade8022,#4ade8044);}
+.fet.cd{background:linear-gradient(135deg,#60a5fa22,#60a5fa44);}
+.fet.cm{background:linear-gradient(135deg,#f8717122,#f8717144);}
+.fet.cv{background:linear-gradient(135deg,#34d39922,#34d39944);}
+.fet.cs{background:linear-gradient(135deg,#fbbf2422,#fbbf2444);}
+.fet.ck{background:linear-gradient(135deg,#c084fc22,#c084fc44);}
+.fet.ci{background:linear-gradient(135deg,#fb923c22,#fb923c44);}
+.fet.cn{background:linear-gradient(135deg,#22d3ee22,#22d3ee44);}
+.fet.cf{background:linear-gradient(135deg,#a3e63522,#a3e63544);}
+.ri{padding:9px 12px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:10px;}
+.ri-info{flex:1;min-width:0;}
 .divider{height:1px;background:var(--border);margin:14px 0;}
 .sel-name{font-size:15px;font-weight:700;margin-bottom:2px;}
 .sel-meta{font-size:12px;color:var(--muted);}
@@ -220,7 +232,7 @@ input[type=time]{color-scheme:dark;}
 <div class="app-header">
   <div>
     <h1>🍽️ Calorie Tracker</h1>
-    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v3.9</span> <span style="color:var(--muted);font-size:10px;">· 17 Nov 2026</span></div>
+    <div class="sub">Day-wise meal log &nbsp;<span style="color:var(--accent);font-weight:700;">v4.0</span> <span style="color:var(--muted);font-size:10px;">· 21 Nov 2026</span></div>
   </div>
   <div class="profile-pill" id="profilePill" onclick="cycleProfile()">
     <div id="pillAvatar" style="width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#0f1115;overflow:hidden;flex-shrink:0;"></div>
@@ -1054,6 +1066,27 @@ input[type=time]{color-scheme:dark;}
 <div class="toast" id="toast"></div>
 <script>
 // ── Data ─────────────────────────────────────────────────────────────────────
+const CAT_EMOJI={Grains:'🍚',Lentils:'🫘',Dairy:'🥛',Meat:'🍗',Eggs:'🥚',Vegetables:'🥦',Fruit:'🍎',Nuts:'🥜',Snacks:'🍿',Drinks:'☕',Sweets:'🍬',Indian:'🍛','Indian Chinese':'🍜','Instant & Ready':'🛒','Street Food':'🌮',Fasting:'🫙',Recipes:'🍳'};
+const FOOD_EMOJI={'Rice (cooked)':'🍚','Roti / Chapati':'🫓','Paratha (plain)':'🫓','Puri':'🫓','Bhature':'🫓','Poha':'🍚','Upma':'🍚','Idli':'🤍','Dosa':'🥞','Uttapam':'🥞','Naan':'🫓','Kulcha':'🫓','Bhakri':'🫓','Thepla':'🫓','Missi Roti':'🫓','Pav Bhaji':'🍞','Poori Bhaji':'🫓',
+'Dal Tadka':'🫘','Dal Makhani':'🫘','Chana Dal':'🫘','Moong Dal':'🫘','Toor Dal':'🫘','Masoor Dal':'🫘','Rajma':'🫘','Chhole':'🫘','Moth Beans':'🫘','Black-eyed Peas':'🫘',
+'Paneer':'🧀','Paneer Butter Masala':'🧀','Palak Paneer':'🧀','Shahi Paneer':'🧀','Paneer Tikka':'🧀','Paneer Sandwich':'🧀',
+'Chicken Curry':'🍗','Chicken Tikka':'🍗','Butter Chicken':'🍗','Tandoori Chicken':'🍗','Chicken Biryani':'🍗','Chicken 65':'🍗','Chicken Sandwich':'🥪','Egg':'🥚','Boiled Egg':'🥚','Omelette':'🍳','Scrambled Egg':'🍳','Egg Sandwich':'🥪','Fish':'🐟','Fish Curry':'🐟',
+'Aloo Sabzi':'🥔','Aloo Gobhi':'🥔','Aloo Matar':'🥔','Aloo Paratha':'🥔','Jeera Aloo':'🥔','Mashed Potato':'🥔',
+'Palak Sabzi':'🥬','Gobhi Sabzi':'🥦','Bhindi Fry':'🫑','Baigan Bharta':'🍆','Baigan Tava Fry':'🍆','Lauki Sabzi':'🥒','Lauki Pakoda (Besan)':'🥒','Tori Sabzi':'🥒','Karela':'🫑','Hari Badi Mirch Tava':'🫑',
+'Tomato':'🍅','Carrot':'🥕','Onion':'🧅','Cucumber':'🥒','Spinach':'🥬',
+'Banana':'🍌','Apple':'🍎','Mango':'🥭','Orange':'🍊','Papaya':'🍈','Grapes':'🍇','Watermelon':'🍉','Pomegranate':'🍎','Guava':'🍐',
+'Milk':'🥛','Curd / Dahi':'🥛','Yoghurt':'🥛','Lassi':'🥤','Buttermilk':'🥤','Paneer (raw)':'🧀','Cheese':'🧀','Ghee':'🧈',
+'Chai / Tea':'☕','Coffee':'☕','Green Tea':'🍵','Coconut Water':'🥥','Fruit Juice':'🧃','Soft Drink':'🥤','Nimbu Pani':'🍋','Water':'💧',
+'Ladoo':'🍡','Halwa':'🍮','Kheer':'🍮','Gulab Jamun':'🍡','Rasgulla':'🍡','Barfi':'🍬','Jalebi':'🍩','Thekua':'🍘','Peda':'🍬','Chikki':'🍘','Ice Cream':'🍦','Rabri':'🍮',
+'Samosa':'🥟','Kachori':'🥟','Pakoda':'🧆','Pyaz Pakoda (Besan)':'🧅','Mirch Pakoda (Besan)':'🫑','Bhajiya':'🧆','Vada':'🧆','Medu Vada':'🧆','Dhokla':'🍰',
+'Chaat':'🫕','Papdi Chaat':'🫕','Bhel Puri':'🫕','Pani Puri':'🫕','Sev Puri':'🫕','Dahi Vada':'🫕',
+'Maggi Noodles':'🍜','Yippee Noodles':'🍜','Cup Noodles':'🍜','Sewai Namkeen (Pyaz-Tamatar)':'🍜','Instant Soup':'🍵',
+'Veg Fried Rice':'🍳','Egg Fried Rice':'🍳','Chicken Fried Rice':'🍳','Veg Manchurian':'🍲','Chilli Paneer':'🧀','Schezwan Noodles':'🍜','Spring Roll':'🥟','Momos':'🥟',
+'Pizza':'🍕','Burger':'🍔','French Fries':'🍟','Hot Dog':'🌭','Pasta':'🍝','Sandwich':'🥪','Potato & Cheese Sandwich':'🥪','Avocado & Cheese Sandwich':'🥪','Grilled Veg Sandwich':'🥪',
+'Peanuts':'🥜','Mixed Nuts':'🥜','Almonds':'🥜','Cashews':'🥜','Walnuts':'🥜','Popcorn':'🍿','Chips':'🍿','Namkeen':'🥨','Murukku':'🥨','Chivda':'🥨'};
+function getFoodEmoji(name,cat){return FOOD_EMOJI[name]||CAT_EMOJI[cat]||'🍽️';}
+function getCatCls(cat){const m={Grains:'cg',Lentils:'cl',Dairy:'cd',Meat:'cm',Eggs:'cm',Vegetables:'cv',Fruit:'cv',Nuts:'cs',Snacks:'cs',Drinks:'cn',Sweets:'ck',Indian:'ci','Indian Chinese':'cn','Instant & Ready':'cn','Street Food':'cs',Fasting:'cf',Recipes:'ci'};return m[cat]||'cg';}
+function foodTile(name,cat){return`<div class="fet ${getCatCls(cat)}">${getFoodEmoji(name,cat)}</div>`;}
 const FOODS=[
   {name:'Rice (cooked)',cat:'Grains',unit:'100g',cal:130,p:2.7,c:28,f:0.3,s:0},
   {name:'Roti / Chapati',cat:'Grains',unit:'1 piece (40g)',cal:120,p:3,c:24,f:1.5,s:0.2},
@@ -1609,7 +1642,7 @@ function renderFastingBanner(){
       const allowedWater=['Lemon Water','Green Tea (plain)'];
       document.getElementById('fastingFoodsList').innerHTML+=allowedWater.map(name=>{
         const fo=FOODS.find(x=>x.name===name);if(!fo)return'';
-        return`<div class="ri" style="border-radius:8px;border:1px solid var(--border);margin-bottom:6px;" onclick="openFastingQty('${fo.name}')"><div><div class="rname">${fo.name}</div><div class="rmeta">${fo.unit}</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="rcal">${fo.cal} kcal</span><span style="color:var(--accent);font-size:18px;">＋</span></div></div>`;
+        return`<div class="ri" style="border-radius:8px;border:1px solid var(--border);margin-bottom:6px;" onclick="openFastingQty('${fo.name}')">${foodTile(fo.name,fo.cat)}<div class="ri-info"><div class="rname">${fo.name}</div><div class="rmeta">${fo.unit}</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="rcal">${fo.cal} kcal</span><span style="color:var(--accent);font-size:18px;">＋</span></div></div>`;
       }).join('');
       renderFastingLog();
     }else if(f.type==='if16'){
@@ -1645,10 +1678,7 @@ function renderFastingFoods(allowed){
   el.innerHTML=allowed.map(name=>{
     const f=FOODS.find(x=>x.name===name);
     if(!f)return`<div class="ri" style="cursor:default;"><span class="rname">${name}</span></div>`;
-    return`<div class="ri" style="border-radius:8px;border:1px solid var(--border);margin-bottom:6px;" onclick="openFastingQty('${f.name}')">
-      <div><div class="rname">${f.name}</div><div class="rmeta">${f.unit} · P${f.p}g C${f.c}g F${f.f}g</div></div>
-      <div style="display:flex;align-items:center;gap:8px;"><span class="rcal">${f.cal} kcal</span><span style="color:var(--accent);font-size:18px;">＋</span></div>
-    </div>`;
+    return`<div class="ri" style="border-radius:8px;border:1px solid var(--border);margin-bottom:6px;" onclick="openFastingQty('${f.name}')">${foodTile(f.name,f.cat)}<div class="ri-info"><div class="rname">${f.name}</div><div class="rmeta">${f.unit} · P${f.p}g C${f.c}g F${f.f}g</div></div><div style="display:flex;align-items:center;gap:8px;"><span class="rcal">${f.cal} kcal</span><span style="color:var(--accent);font-size:18px;">＋</span></div></div>`;
   }).join('');
   renderFastingLog();
 }
@@ -1763,9 +1793,9 @@ function searchFoods(){
   const myHits=getMyFoods().filter(f=>f.name.toLowerCase().includes(q));
   const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q)).slice(0,12);
   const rHits=getRecipes().filter(r=>r.name.toLowerCase().includes(q)).slice(0,3);
-  const myItems=myHits.map(f=>`<div class="ri" onclick="selectMyFood('${encodeURIComponent(f.name)}')"><div><div class="rname">⭐ ${f.name}<span class="tag">My Foods</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`);
-  const recipeItems=rHits.map(r=>`<div class="ri" onclick="selectFoodRecipe('${r.id}')"><div><div class="rname">🍳 ${r.name}<span class="tag">Recipe</span></div><div class="rmeta">per serving · P${r.per.p}g C${r.per.c}g F${r.per.f}g</div></div><span class="rcal">${r.per.cal} kcal</span></div>`);
-  const foodItems=hits.map(f=>`<div class="ri" onclick="selectFood('${f.name}')"><div><div class="rname">${f.name}<span class="tag">${f.cat}</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`);
+  const myItems=myHits.map(f=>`<div class="ri" onclick="selectMyFood('${encodeURIComponent(f.name)}')">${foodTile(f.name,'My Foods')}<div class="ri-info"><div class="rname">⭐ ${f.name}<span class="tag">My Foods</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`);
+  const recipeItems=rHits.map(r=>`<div class="ri" onclick="selectFoodRecipe('${r.id}')">${foodTile(r.name,'Recipes')}<div class="ri-info"><div class="rname">🍳 ${r.name}<span class="tag">Recipe</span></div><div class="rmeta">per serving · P${r.per.p}g C${r.per.c}g F${r.per.f}g</div></div><span class="rcal">${r.per.cal} kcal</span></div>`);
+  const foodItems=hits.map(f=>`<div class="ri" onclick="selectFood('${f.name}')">${foodTile(f.name,f.cat)}<div class="ri-info"><div class="rname">${f.name}<span class="tag">${f.cat}</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`);
   const all=[...myItems,...recipeItems,...foodItems];
   if(!all.length){el.innerHTML='<div class="es">No results</div>';return;}
   el.innerHTML=all.join('');
@@ -1911,7 +1941,7 @@ function searchComboFoods(){
   const el=document.getElementById('comboFoodResults');
   if(!q){el.innerHTML='';return;}
   const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)).slice(0,10);
-  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addToNewCombo('${f.name}')"><div><div class="rname">${f.name}</div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
+  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addToNewCombo('${f.name}')">${foodTile(f.name,f.cat)}<div class="ri-info"><div class="rname">${f.name}</div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
 }
 
 function addToNewCombo(name){
@@ -3108,7 +3138,7 @@ function searchPlanFoods(input,d,meal){
   if(!q){el.innerHTML='';return;}
   const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q)).slice(0,8);
   if(!hits.length){el.innerHTML='<div class="es">No results</div>';return;}
-  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addPlanItem('${d}','${meal}','${f.name}')"><div><div class="rname">${f.name}<span class="tag">${f.cat}</span></div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
+  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addPlanItem('${d}','${meal}','${f.name}')">${foodTile(f.name,f.cat)}<div class="ri-info"><div class="rname">${f.name}<span class="tag">${f.cat}</span></div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
 }
 function addPlanItem(d,meal,foodName){
   const f=FOODS.find(x=>x.name===foodName);if(!f)return;
@@ -3252,7 +3282,7 @@ function searchRecipeFoods(){
   if(!q){el.innerHTML='';return;}
   const hits=FOODS.filter(f=>f.name.toLowerCase().includes(q)||f.cat.toLowerCase().includes(q)).slice(0,10);
   if(!hits.length){el.innerHTML='<div class="es">No results</div>';return;}
-  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addRecipeIngredient('${f.name}')"><div><div class="rname">${f.name}<span class="tag">${f.cat}</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
+  el.innerHTML=hits.map(f=>`<div class="ri" onclick="addRecipeIngredient('${f.name}')">${foodTile(f.name,f.cat)}<div class="ri-info"><div class="rname">${f.name}<span class="tag">${f.cat}</span></div><div class="rmeta">${f.unit}</div></div><span class="rcal">${f.cal} kcal</span></div>`).join('');
 }
 
 function addRecipeIngredient(name){
