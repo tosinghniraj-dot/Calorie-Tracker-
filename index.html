@@ -1102,7 +1102,8 @@ const FOOD_EMOJI={'Rice (cooked)':'🍚','Roti / Chapati':'🫓','Paratha (plain
 'Raj Kachori':'🫕','Corn Bhel':'🌽','Veg Kathi Roll':'🌯',
 'Falooda':'🧋','Kulfi':'🍦','Coconut Ladoo':'🥥','Til Ladoo':'🍡','Sheer Khurma':'🍮','Panjiri':'🍘',
 'Kurkure':'🌶️','Chana Jor Garam':'🫘','Protein Bar':'💪',
-'Thandai':'🥛','Sattu Sharbat':'🥤','Bael Sharbat':'🍶'};
+'Thandai':'🥛','Sattu Sharbat':'🥤','Bael Sharbat':'🍶',
+'Red Sauce Pasta (restaurant)':'🍝','White Sauce Pasta (restaurant)':'🍝','Mix Sauce Pasta (restaurant)':'🍝','Atta Pasta (onion-tomato)':'🍝','Paneer White Sauce Pasta':'🍝'};
 function getFoodEmoji(name,cat){return FOOD_EMOJI[name]||CAT_EMOJI[cat]||'🍽️';}
 function getCatCls(cat){const m={Grains:'cg',Lentils:'cl',Dairy:'cd',Meat:'cm',Eggs:'cm',Vegetables:'cv',Fruit:'cv',Nuts:'cs',Snacks:'cs',Drinks:'cn',Sweets:'ck',Indian:'ci','Indian Chinese':'cn','Instant & Ready':'cn','Street Food':'cs',Fasting:'cf',Recipes:'ci'};return m[cat]||'cg';}
 function foodTile(name,cat){return`<div class="fet ${getCatCls(cat)}">${getFoodEmoji(name,cat)}</div>`;}
@@ -1399,6 +1400,11 @@ const FOODS=[
   {name:'Raj Kachori',cat:'Street Food',unit:'1 piece (150g)',cal:320,p:8,c:42,f:13,s:3},
   {name:'Corn Bhel',cat:'Street Food',unit:'1 plate (150g)',cal:180,p:4,c:32,f:5,s:4},
   {name:'Veg Kathi Roll',cat:'Street Food',unit:'1 roll (150g)',cal:290,p:8,c:42,f:9,s:2},
+  {name:'Red Sauce Pasta (restaurant)',cat:'Street Food',unit:'1 plate (250g)',cal:350,p:10,c:58,f:10,s:4},
+  {name:'White Sauce Pasta (restaurant)',cat:'Street Food',unit:'1 plate (250g)',cal:420,p:12,c:50,f:18,s:3},
+  {name:'Mix Sauce Pasta (restaurant)',cat:'Street Food',unit:'1 plate (250g)',cal:385,p:11,c:54,f:14,s:3},
+  {name:'Atta Pasta (onion-tomato)',cat:'Street Food',unit:'1 bowl (200g)',cal:270,p:9,c:46,f:6,s:3},
+  {name:'Paneer White Sauce Pasta',cat:'Street Food',unit:'1 bowl (200g)',cal:355,p:15,c:42,f:15,s:2},
   // Bihar/UP & regional sweets
   {name:'Thekua',cat:'Sweets',unit:'1 piece (40g)',cal:170,p:2.5,c:25,f:7,s:12},
   {name:'Khaja',cat:'Sweets',unit:'1 piece (35g)',cal:155,p:2,c:24,f:6,s:10},
