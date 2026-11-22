@@ -1095,7 +1095,14 @@ const FOOD_EMOJI={'Rice (cooked)':'🍚','Roti / Chapati':'🫓','Paratha (plain
 'Maggi Noodles':'🍜','Yippee Noodles':'🍜','Cup Noodles':'🍜','Sewai Namkeen (Pyaz-Tamatar)':'🍜','Instant Soup':'🍵',
 'Veg Fried Rice':'🍳','Egg Fried Rice':'🍳','Chicken Fried Rice':'🍳','Veg Manchurian':'🍲','Chilli Paneer':'🧀','Schezwan Noodles':'🍜','Spring Roll':'🥟','Momos':'🥟',
 'Pizza':'🍕','Burger':'🍔','French Fries':'🍟','Hot Dog':'🌭','Pasta':'🍝','Sandwich':'🥪','Potato & Cheese Sandwich':'🥪','Avocado & Cheese Sandwich':'🥪','Grilled Veg Sandwich':'🥪',
-'Peanuts':'🥜','Mixed Nuts':'🥜','Almonds':'🥜','Cashews':'🥜','Walnuts':'🥜','Popcorn':'🍿','Chips':'🍿','Namkeen':'🥨','Murukku':'🥨','Chivda':'🥨'};
+'Peanuts':'🥜','Mixed Nuts':'🥜','Almonds':'🥜','Cashews':'🥜','Walnuts':'🥜','Popcorn':'🍿','Chips':'🍿','Namkeen':'🥨','Murukku':'🥨','Chivda':'🥨',
+'Gobhi Paratha':'🥦','Muli Paratha':'🫓','Laccha Paratha':'🫓','Tandoori Roti':'🫓','Sattu Paratha':'🫓','Curd Rice':'🍚','Tomato Rice':'🍅','Matar Pulao':'🍚','Pesarattu':'🥞',
+'Dal Fry':'🫘','Lauki Chana Dal':'🫘','Tofu Bhurji':'🧆','Mushroom Matar':'🍄','Palak Mushroom':'🍄',
+'Litti Chokha':'🧆','Paneer Do Pyaza':'🧀','Achari Paneer':'🧀','Veg Handi':'🫕',
+'Raj Kachori':'🫕','Corn Bhel':'🌽','Veg Kathi Roll':'🌯',
+'Falooda':'🧋','Kulfi':'🍦','Coconut Ladoo':'🥥','Til Ladoo':'🍡','Sheer Khurma':'🍮','Panjiri':'🍘',
+'Kurkure':'🌶️','Chana Jor Garam':'🫘','Protein Bar':'💪',
+'Thandai':'🥛','Sattu Sharbat':'🥤','Bael Sharbat':'🍶'};
 function getFoodEmoji(name,cat){return FOOD_EMOJI[name]||CAT_EMOJI[cat]||'🍽️';}
 function getCatCls(cat){const m={Grains:'cg',Lentils:'cl',Dairy:'cd',Meat:'cm',Eggs:'cm',Vegetables:'cv',Fruit:'cv',Nuts:'cs',Snacks:'cs',Drinks:'cn',Sweets:'ck',Indian:'ci','Indian Chinese':'cn','Instant & Ready':'cn','Street Food':'cs',Fasting:'cf',Recipes:'ci'};return m[cat]||'cg';}
 function foodTile(name,cat){return`<div class="fet ${getCatCls(cat)}">${getFoodEmoji(name,cat)}</div>`;}
@@ -1229,6 +1236,15 @@ const FOODS=[
   {name:'Medu Vada',cat:'Grains',unit:'1 piece (50g)',cal:150,p:5,c:18,f:7,s:0.5},
   {name:'Rava Idli',cat:'Grains',unit:'1 piece (50g)',cal:80,p:2.5,c:14,f:2,s:0.5},
   {name:'Appam',cat:'Grains',unit:'1 piece (60g)',cal:120,p:2.5,c:22,f:2,s:0.5},
+  {name:'Gobhi Paratha',cat:'Grains',unit:'1 piece (100g)',cal:240,p:5,c:32,f:10,s:1},
+  {name:'Muli Paratha',cat:'Grains',unit:'1 piece (90g)',cal:200,p:4.5,c:28,f:7,s:0.5},
+  {name:'Laccha Paratha',cat:'Grains',unit:'1 piece (60g)',cal:190,p:4,c:28,f:7,s:0.3},
+  {name:'Tandoori Roti',cat:'Grains',unit:'1 piece (50g)',cal:100,p:3.5,c:20,f:1,s:0.2},
+  {name:'Sattu Paratha',cat:'Grains',unit:'1 piece (100g)',cal:260,p:10,c:36,f:8,s:0.5},
+  {name:'Curd Rice',cat:'Grains',unit:'1 katori (200g)',cal:220,p:6,c:38,f:5,s:2},
+  {name:'Tomato Rice',cat:'Grains',unit:'1 katori (200g)',cal:220,p:4,c:42,f:5,s:2},
+  {name:'Matar Pulao',cat:'Grains',unit:'1 katori (200g)',cal:230,p:6,c:44,f:4,s:1},
+  {name:'Pesarattu',cat:'Grains',unit:'1 piece (80g)',cal:150,p:7,c:22,f:4,s:0.5},
   {name:'Maggi (plain)',cat:'Grains',unit:'1 packet (70g dry)',cal:310,p:7,c:44,f:12,s:0.5},
   // More Lentils
   {name:'Dal (Masoor/Red)',cat:'Lentils',unit:'1 katori (150g cooked)',cal:135,p:9,c:23,f:0.4,s:0},
@@ -1236,6 +1252,8 @@ const FOODS=[
   {name:'Mixed Dal (Panchmel)',cat:'Lentils',unit:'1 katori (150g cooked)',cal:155,p:10,c:25,f:0.8,s:0},
   {name:'Kala Chana (Black)',cat:'Lentils',unit:'1 katori (150g cooked)',cal:200,p:11,c:33,f:2,s:0},
   {name:'Lobiya (Black Eyed Peas)',cat:'Lentils',unit:'1 katori (150g cooked)',cal:190,p:13,c:31,f:1,s:0},
+  {name:'Dal Fry',cat:'Lentils',unit:'1 katori (150g)',cal:160,p:9,c:22,f:5,s:0.5},
+  {name:'Lauki Chana Dal',cat:'Lentils',unit:'1 katori (150g)',cal:140,p:7,c:20,f:4,s:1},
   // More Vegetables
   {name:'Kadhai Paneer',cat:'Vegetables',unit:'1 katori (200g)',cal:290,p:14,c:12,f:21,s:4},
   {name:'Shahi Paneer',cat:'Vegetables',unit:'1 katori (200g)',cal:330,p:14,c:16,f:24,s:5},
@@ -1248,6 +1266,9 @@ const FOODS=[
   {name:'Sarson Ka Saag',cat:'Vegetables',unit:'1 katori (150g)',cal:120,p:4,c:14,f:5,s:2},
   {name:'Mushroom Sabzi',cat:'Vegetables',unit:'1 katori (150g)',cal:130,p:4.5,c:10,f:7,s:3},
   {name:'Pumpkin Sabzi',cat:'Vegetables',unit:'1 katori (150g)',cal:85,p:2,c:14,f:2.5,s:4},
+  {name:'Tofu Bhurji',cat:'Vegetables',unit:'1 katori (150g)',cal:130,p:10,c:7,f:8,s:2},
+  {name:'Mushroom Matar',cat:'Vegetables',unit:'1 katori (150g)',cal:110,p:5,c:12,f:5,s:2},
+  {name:'Palak Mushroom',cat:'Vegetables',unit:'1 katori (150g)',cal:95,p:4.5,c:8,f:5,s:1.5},
   // Street Food
   {name:'Samosa',cat:'Street Food',unit:'1 piece (80g)',cal:200,p:4,c:26,f:9,s:1},
   {name:'Kachori',cat:'Street Food',unit:'1 piece (70g)',cal:220,p:5,c:28,f:10,s:0.5},
@@ -1283,6 +1304,9 @@ const FOODS=[
   {name:'Energy Drink (can)',cat:'Drinks',unit:'1 can (250ml)',cal:110,p:0,c:28,f:0,s:27},
   {name:'Aam Panna',cat:'Drinks',unit:'1 glass (250ml)',cal:80,p:0.3,c:20,f:0.1,s:18},
   {name:'Rose Sharbat',cat:'Drinks',unit:'1 glass (250ml)',cal:95,p:0.1,c:24,f:0,s:22},
+  {name:'Thandai',cat:'Drinks',unit:'1 glass (250ml)',cal:200,p:5,c:30,f:7,s:22},
+  {name:'Sattu Sharbat',cat:'Drinks',unit:'1 glass (250ml)',cal:120,p:6,c:22,f:1,s:8},
+  {name:'Bael Sharbat',cat:'Drinks',unit:'1 glass (250ml)',cal:95,p:1,c:23,f:0.3,s:20},
   // More Sweets
   {name:'Modak',cat:'Sweets',unit:'1 piece (50g)',cal:170,p:3,c:28,f:6,s:14},
   {name:'Peda',cat:'Sweets',unit:'1 piece (30g)',cal:120,p:2.5,c:18,f:4.5,s:16},
@@ -1306,6 +1330,10 @@ const FOODS=[
   {name:'Dahi Bhalla',cat:'Snacks',unit:'2 pieces + dahi (200g)',cal:230,p:8,c:32,f:8,s:5},
   {name:'Paneer Tikka Masala',cat:'Indian',unit:'1 katori (150g)',cal:280,p:14,c:10,f:21,s:2},
   {name:'Matar Kulcha',cat:'Indian',unit:'1 serving (2 kulcha + matar)',cal:420,p:14,c:70,f:10,s:3},
+  {name:'Litti Chokha',cat:'Indian',unit:'1 litti + chokha (150g)',cal:320,p:9,c:42,f:12,s:2},
+  {name:'Paneer Do Pyaza',cat:'Indian',unit:'1 katori (150g)',cal:260,p:12,c:10,f:19,s:2},
+  {name:'Achari Paneer',cat:'Indian',unit:'1 katori (150g)',cal:250,p:12,c:9,f:19,s:2},
+  {name:'Veg Handi',cat:'Indian',unit:'1 katori (200g)',cal:220,p:7,c:20,f:13,s:3},
   // More Nuts & Seeds
   {name:'Pistachio',cat:'Nuts',unit:'30 pieces (28g)',cal:159,p:6,c:8,f:13,s:2},
   {name:'Flaxseeds',cat:'Nuts',unit:'1 tbsp (10g)',cal:55,p:1.9,c:3,f:4.3,s:0},
@@ -1368,6 +1396,9 @@ const FOODS=[
   {name:'French Fries (medium)',cat:'Street Food',unit:'1 serving (117g)',cal:320,p:4,c:44,f:15,s:0.3},
   {name:'Chicken Nuggets (6 pcs)',cat:'Street Food',unit:'6 pieces (96g)',cal:270,p:15,c:16,f:16,s:0.5},
   {name:'Hot Dog / Veg Frank',cat:'Street Food',unit:'1 piece (120g)',cal:260,p:9,c:30,f:11,s:4},
+  {name:'Raj Kachori',cat:'Street Food',unit:'1 piece (150g)',cal:320,p:8,c:42,f:13,s:3},
+  {name:'Corn Bhel',cat:'Street Food',unit:'1 plate (150g)',cal:180,p:4,c:32,f:5,s:4},
+  {name:'Veg Kathi Roll',cat:'Street Food',unit:'1 roll (150g)',cal:290,p:8,c:42,f:9,s:2},
   // Bihar/UP & regional sweets
   {name:'Thekua',cat:'Sweets',unit:'1 piece (40g)',cal:170,p:2.5,c:25,f:7,s:12},
   {name:'Khaja',cat:'Sweets',unit:'1 piece (35g)',cal:155,p:2,c:24,f:6,s:10},
@@ -1377,6 +1408,12 @@ const FOODS=[
   {name:'Chikki (Peanut)',cat:'Snacks',unit:'1 piece (25g)',cal:120,p:3,c:14,f:6,s:8},
   {name:'Balushahi',cat:'Sweets',unit:'1 piece (40g)',cal:180,p:2,c:22,f:9,s:14},
   {name:'Moti Choor Ladoo',cat:'Sweets',unit:'1 piece (35g)',cal:150,p:2.5,c:22,f:6,s:14},
+  {name:'Falooda',cat:'Sweets',unit:'1 glass (350ml)',cal:280,p:5,c:55,f:6,s:35},
+  {name:'Kulfi',cat:'Sweets',unit:'1 stick (80g)',cal:170,p:4,c:22,f:7,s:18},
+  {name:'Coconut Ladoo',cat:'Sweets',unit:'1 piece (35g)',cal:150,p:1.5,c:18,f:8,s:15},
+  {name:'Til Ladoo',cat:'Sweets',unit:'1 piece (30g)',cal:148,p:3,c:16,f:8,s:10},
+  {name:'Sheer Khurma',cat:'Sweets',unit:'1 cup (200ml)',cal:280,p:7,c:42,f:9,s:30},
+  {name:'Panjiri',cat:'Sweets',unit:'2 tbsp (30g)',cal:160,p:4,c:18,f:8,s:10},
   // Sewai & Tava items
   {name:'Sewai Namkeen (Pyaz-Tamatar)',cat:'Indian',unit:'1 plate (175g)',cal:235,p:6,c:40,f:7,s:2},
   {name:'Baigan Tava Fry',cat:'Indian',unit:'1 piece (40g)',cal:45,p:0.5,c:3,f:4,s:0.3},
@@ -1387,6 +1424,9 @@ const FOODS=[
   {name:'Aloo Palak Sabzi',cat:'Indian',unit:'1 katori (120g)',cal:100,p:3,c:12,f:5,s:1},
   {name:'Bundi (Besan)',cat:'Snacks',unit:'1 handful (30g)',cal:135,p:3.5,c:17,f:6,s:0.5},
   {name:'Bundi Bhujia',cat:'Snacks',unit:'30g',cal:148,p:4,c:18,f:7,s:1},
+  {name:'Kurkure',cat:'Snacks',unit:'1 pack (30g)',cal:150,p:2,c:20,f:7,s:0.5},
+  {name:'Chana Jor Garam',cat:'Snacks',unit:'30g',cal:100,p:5,c:16,f:2,s:0.5},
+  {name:'Protein Bar',cat:'Snacks',unit:'1 bar (60g)',cal:230,p:20,c:24,f:7,s:8},
   // Sandwiches
   {name:'Potato & Cheese Sandwich',cat:'Snacks',unit:'1 sandwich (2 slices, ~130g)',cal:300,p:10,c:38,f:12,s:1},
   {name:'Avocado & Cheese Sandwich',cat:'Snacks',unit:'1 sandwich (2 slices, ~140g)',cal:340,p:11,c:30,f:19,s:1},
