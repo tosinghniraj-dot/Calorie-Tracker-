@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+      - name: Stamp build date
+        run: sed -i "s/__BUILD_DATE__/$(date -u +'%d %b %Y %H:%M UTC')/g" index.html
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
