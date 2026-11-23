@@ -851,6 +851,11 @@ input[type=time]{color-scheme:dark;}
       <div class="reminder-row"><label>☀️ Lunch</label><input type="time" id="remLu" value="13:00" onchange="saveReminders()"></div>
       <div class="reminder-row"><label>🌙 Dinner</label><input type="time" id="remDn" value="20:00" onchange="saveReminders()"></div>
     </div>
+    <div class="toggle-wrap" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+      <span>💧 Water reminder every hour</span>
+      <label class="toggle"><input type="checkbox" id="waterNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px);">Alerts if no water logged for 60 min (7 am – 10 pm)</div>
   </div>
   <div class="card">
     <div class="card-title">Profiles</div>
@@ -1539,13 +1544,14 @@ function saveDayData(d,data){localStorage.setItem(pk('day:'+d),JSON.stringify(da
 function getGoals(){return JSON.parse(localStorage.getItem(pk('goals'))||'{"cal":2000,"p":50,"c":250,"f":70}');}
 function getWater(d){return parseInt(localStorage.getItem(pk('water:'+(d||currentDate)))||'0',10);}
 function setWater(n,d){localStorage.setItem(pk('water:'+(d||currentDate)),String(Math.max(0,Math.min(20,n))));renderWaterSmall();renderWater();showSaveDot();}
-function addWater(glasses){setWater(getWater()+glasses);}
+function addWater(glasses){setWater(getWater()+glasses);if(glasses>0)localStorage.setItem(pk('water_last_log'),Date.now().toString());}
 function addWaterCustom(inputId){
   const el=document.getElementById(inputId);
   const ml=parseInt(el.value,10);
   if(!ml||ml<=0){el.focus();return;}
   const glasses=ml/250;
   setWater(getWater()+glasses);
+  localStorage.setItem(pk('water_last_log'),Date.now().toString());
   el.value='';
 }
 function getProfiles(){return JSON.parse(localStorage.getItem('profiles')||'["default"]');}
@@ -2311,6 +2317,7 @@ function saveReminders(){
     lu:document.getElementById('remLu').value,
     dn:document.getElementById('remDn').value
   }));
+  localStorage.setItem(pk('water_notif'),document.getElementById('waterNotifToggle').checked?'1':'0');
 }
 function loadReminders(){
   const r=JSON.parse(localStorage.getItem(pk('reminders'))||'{}');
@@ -2318,6 +2325,7 @@ function loadReminders(){
   if(r.lu)document.getElementById('remLu').value=r.lu;
   if(r.dn)document.getElementById('remDn').value=r.dn;
   document.getElementById('notifToggle').checked=localStorage.getItem(pk('notif'))==='1';
+  document.getElementById('waterNotifToggle').checked=localStorage.getItem(pk('water_notif'))==='1';
 }
 function toggleNotifications(){
   const on=document.getElementById('notifToggle').checked;
@@ -2959,9 +2967,26 @@ function handleRestore(input){
 
 // ── Feature 2: Meal Reminders ─────────────────────────────────────────────────
 let _remindersFired={};
+let _waterNotifFiredAt=0;
 function startReminderChecker(){
   setInterval(checkReminders,60000);
+  setInterval(checkWaterReminder,60000);
   checkReminders();
+  setTimeout(checkWaterReminder,5000);
+}
+function checkWaterReminder(){
+  if(localStorage.getItem(pk('notif'))!=='1')return;
+  if(localStorage.getItem(pk('water_notif'))!=='1')return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const hour=new Date().getHours();
+  if(hour<7||hour>=22)return;
+  const nowMs=Date.now();
+  if(nowMs-_waterNotifFiredAt<55*60*1000)return;
+  const lastLog=parseInt(localStorage.getItem(pk('water_last_log'))||'0',10);
+  if(nowMs-lastLog>=60*60*1000){
+    _waterNotifFiredAt=nowMs;
+    new Notification('💧 Drink water!',{body:'No water logged in the last hour. Stay hydrated — aim for 8+ glasses today!',icon:'./icon.svg',badge:'./icon.svg'});
+  }
 }
 function checkReminders(){
   if(localStorage.getItem(pk('notif'))!=='1')return;
