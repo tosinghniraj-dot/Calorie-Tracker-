@@ -24,7 +24,9 @@ jobs:
         with:
           ref: main
       - name: Stamp build date
-        run: sed -i "s/__BUILD_DATE__/$(date -u +'%d %b %Y %H:%M UTC')/g" index.html
+        run: |
+          BUILD_DATE=$(date -u +'%d %b %Y %H:%M UTC')
+          sed -i "s/__BUILD_DATE__/$BUILD_DATE/g" index.html
       - uses: actions/configure-pages@v4
       - uses: actions/upload-pages-artifact@v3
         with:
