@@ -1108,7 +1108,12 @@ const FOOD_EMOJI={'Rice (cooked)':'🍚','Roti / Chapati':'🫓','Paratha (plain
 'Falooda':'🧋','Kulfi':'🍦','Coconut Ladoo':'🥥','Til Ladoo':'🍡','Sheer Khurma':'🍮','Panjiri':'🍘',
 'Kurkure':'🌶️','Chana Jor Garam':'🫘','Protein Bar':'💪',
 'Thandai':'🥛','Sattu Sharbat':'🥤','Bael Sharbat':'🍶',
-'Red Sauce Pasta (restaurant)':'🍝','White Sauce Pasta (restaurant)':'🍝','Mix Sauce Pasta (restaurant)':'🍝','Atta Pasta (onion-tomato)':'🍝','Paneer White Sauce Pasta':'🍝'};
+'Red Sauce Pasta (restaurant)':'🍝','White Sauce Pasta (restaurant)':'🍝','Mix Sauce Pasta (restaurant)':'🍝','Atta Pasta (onion-tomato)':'🍝','Paneer White Sauce Pasta':'🍝',
+'Parwal Aloo':'🥬','Patta Gobhi Aloo':'🥬','Barbatti Bhujia':'🫛','Arbi Sabzi':'🥔','Kathal Sabzi':'🫙','Suran Sabzi':'🫚','Kaddu Sabzi':'🎃','Gobhi Matar':'🥦','Baingan Aloo':'🍆','Shimla Mirch Aloo':'🫑','Kachri Sabzi':'🥒',
+'Kabuli Chana Sabzi':'🫘','Hara Matar Sabzi':'🫛','Peela Matar':'🫘','Dal Paratha':'🫓','Matar Paratha':'🫓','Moong Dal Tadka':'🫘',
+'Tamatar Khatta':'🍅','Kadhi Badi':'🫕','Phulawra':'🧆','Pitha':'🍚','Besan Sabzi':'🫓','Aloo Methi':'🥬',
+'Chana Ghugni':'🫘','Aloo Chokha':'🥔','Baigan Chokha':'🍆','Palak Dal':'🫘',
+'Laal Bhaji':'🌿','Palak Saag':'🥬','Sarson Saag':'🥬','Chana Saag':'🌿'};
 function getFoodEmoji(name,cat){return FOOD_EMOJI[name]||CAT_EMOJI[cat]||'🍽️';}
 function getCatCls(cat){const m={Grains:'cg',Lentils:'cl',Dairy:'cd',Meat:'cm',Eggs:'cm',Vegetables:'cv',Fruit:'cv',Nuts:'cs',Snacks:'cs',Drinks:'cn',Sweets:'ck',Indian:'ci','Indian Chinese':'cn','Instant & Ready':'cn','Street Food':'cs',Fasting:'cf',Recipes:'ci'};return m[cat]||'cg';}
 function foodTile(name,cat){return`<div class="fet ${getCatCls(cat)}">${getFoodEmoji(name,cat)}</div>`;}
@@ -1445,6 +1450,39 @@ const FOODS=[
   {name:'Grilled Veg Sandwich',cat:'Snacks',unit:'1 sandwich (2 slices, ~130g)',cal:240,p:7,c:36,f:7,s:2},
   {name:'Egg Sandwich',cat:'Snacks',unit:'1 sandwich (2 slices, ~130g)',cal:280,p:14,c:28,f:11,s:1},
   {name:'Chicken Sandwich',cat:'Snacks',unit:'1 sandwich (2 slices, ~140g)',cal:310,p:20,c:28,f:11,s:1},
+  // Home-style sabzis
+  {name:'Parwal Aloo',cat:'Vegetables',unit:'1 katori (120g)',cal:100,p:3,c:14,f:4,s:1},
+  {name:'Patta Gobhi Aloo',cat:'Vegetables',unit:'1 katori (120g)',cal:95,p:2.5,c:13,f:4,s:1},
+  {name:'Barbatti Bhujia',cat:'Vegetables',unit:'1 katori (100g)',cal:80,p:3,c:10,f:3.5,s:1},
+  {name:'Arbi Sabzi',cat:'Vegetables',unit:'1 katori (120g)',cal:130,p:2.5,c:20,f:5,s:1},
+  {name:'Kathal Sabzi',cat:'Vegetables',unit:'1 katori (150g)',cal:160,p:3,c:22,f:7,s:2},
+  {name:'Suran Sabzi',cat:'Vegetables',unit:'1 katori (120g)',cal:120,p:2,c:19,f:4,s:1},
+  {name:'Kaddu Sabzi',cat:'Vegetables',unit:'1 katori (150g)',cal:100,p:2,c:15,f:4,s:1},
+  {name:'Gobhi Matar',cat:'Vegetables',unit:'1 katori (150g)',cal:130,p:5,c:16,f:5,s:1.5},
+  {name:'Baingan Aloo',cat:'Vegetables',unit:'1 katori (150g)',cal:130,p:3,c:17,f:6,s:2},
+  {name:'Shimla Mirch Aloo',cat:'Vegetables',unit:'1 katori (120g)',cal:115,p:2.5,c:16,f:5,s:1},
+  {name:'Kachri Sabzi',cat:'Vegetables',unit:'1 katori (100g)',cal:75,p:2,c:10,f:3,s:1},
+  {name:'Kabuli Chana Sabzi',cat:'Lentils',unit:'1 katori (120g)',cal:160,p:8,c:22,f:5,s:1},
+  {name:'Hara Matar Sabzi',cat:'Vegetables',unit:'1 katori (100g)',cal:115,p:5,c:18,f:4,s:1},
+  {name:'Peela Matar',cat:'Lentils',unit:'1 katori (120g)',cal:170,p:9,c:28,f:3,s:1},
+  {name:'Dal Paratha',cat:'Grains',unit:'1 piece (80g)',cal:230,p:7,c:34,f:8,s:0.5},
+  {name:'Matar Paratha',cat:'Grains',unit:'1 piece (80g)',cal:225,p:6,c:35,f:8,s:0.5},
+  {name:'Moong Dal Tadka',cat:'Lentils',unit:'1 katori (150g)',cal:130,p:9,c:18,f:3.5,s:0},
+  {name:'Tamatar Khatta',cat:'Indian',unit:'1 katori (100g)',cal:60,p:1,c:8,f:3,s:1},
+  {name:'Kadhi Badi',cat:'Indian',unit:'1 katori (150g)',cal:160,p:5,c:16,f:9,s:3},
+  {name:'Phulawra',cat:'Indian',unit:'1 piece (25g)',cal:65,p:2.5,c:7,f:3,s:0.3},
+  {name:'Pitha',cat:'Indian',unit:'1 piece (60g)',cal:110,p:3,c:22,f:1.5,s:0},
+  {name:'Besan Sabzi',cat:'Indian',unit:'1 katori (120g)',cal:170,p:7,c:18,f:8,s:1},
+  {name:'Aloo Methi',cat:'Vegetables',unit:'1 katori (120g)',cal:130,p:3,c:17,f:6,s:1},
+  {name:'Chana Ghugni',cat:'Lentils',unit:'1 katori (120g)',cal:170,p:9,c:24,f:5,s:1},
+  {name:'Aloo Chokha',cat:'Indian',unit:'1 katori (100g)',cal:130,p:2.5,c:20,f:5,s:0.5},
+  {name:'Baigan Chokha',cat:'Indian',unit:'1 katori (100g)',cal:80,p:2,c:8,f:5,s:0.5},
+  {name:'Palak Dal',cat:'Lentils',unit:'1 katori (150g)',cal:140,p:9,c:20,f:3.5,s:1},
+  // Saag varieties
+  {name:'Laal Bhaji',cat:'Vegetables',unit:'1 katori (100g)',cal:40,p:2.5,c:4,f:1.5,s:0.5},
+  {name:'Palak Saag',cat:'Vegetables',unit:'1 katori (100g)',cal:65,p:3,c:5,f:4,s:0.5},
+  {name:'Sarson Saag',cat:'Vegetables',unit:'1 katori (120g)',cal:100,p:4,c:8,f:6,s:1},
+  {name:'Chana Saag',cat:'Vegetables',unit:'1 katori (100g)',cal:75,p:3.5,c:7,f:4,s:0.5},
 ];
 
 const EXERCISE_BURNS={Walking:4,Running:10,Yoga:3,Cycling:7,Swimming:8,Gym:6,Other:5};
