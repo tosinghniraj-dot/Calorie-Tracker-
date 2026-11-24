@@ -1,4 +1,4 @@
-const CACHE = 'calorie-tracker-v35';
+const CACHE = 'calorie-tracker-v36';
 const ASSETS = ['./','./index.html','./manifest.json','./icon.svg'];
 
 self.addEventListener('install', e => {
@@ -17,6 +17,14 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('message', e => {
   if(e.data && e.data.type==='SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(list=>{
+    for(const c of list){if(c.url&&'focus' in c)return c.focus();}
+    if(clients.openWindow)return clients.openWindow('./');
+  }));
 });
 
 self.addEventListener('fetch', e => {

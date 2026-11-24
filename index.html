@@ -840,22 +840,48 @@ input[type=time]{color-scheme:dark;}
     </div>
   </div>
   <div class="card">
-    <div class="card-title">Meal Reminders</div>
+    <div class="card-title">Reminders &amp; Habits</div>
     <div class="toggle-wrap">
       <span>Enable Notifications</span>
       <label class="toggle"><input type="checkbox" id="notifToggle" onchange="toggleNotifications()"><span class="tslider"></span></label>
     </div>
     <div class="notif-status" id="notifStatus"></div>
+    <div style="font-size:12px;font-weight:600;color:var(--muted);margin:10px 0 6px;">🍽️ Meal Reminders</div>
     <div id="reminderRows">
       <div class="reminder-row"><label>🌅 Breakfast</label><input type="time" id="remBf" value="08:00" onchange="saveReminders()"></div>
       <div class="reminder-row"><label>☀️ Lunch</label><input type="time" id="remLu" value="13:00" onchange="saveReminders()"></div>
       <div class="reminder-row"><label>🌙 Dinner</label><input type="time" id="remDn" value="20:00" onchange="saveReminders()"></div>
     </div>
-    <div class="toggle-wrap" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-      <span>💧 Water reminder every hour</span>
+    <div style="font-size:12px;font-weight:600;color:var(--muted);margin:14px 0 6px;">💪 Health Habits</div>
+    <div class="toggle-wrap">
+      <span>💧 Water reminder</span>
       <label class="toggle"><input type="checkbox" id="waterNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-top:4px);">Alerts if no water logged for 60 min (7 am – 10 pm)</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:3px;">If no water logged for 60 min (7 am – 10 pm)</div>
+    <div class="toggle-wrap" style="margin-top:10px;">
+      <span>🚶 Walk reminder</span>
+      <label class="toggle"><input type="checkbox" id="walkNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:3px;">Nudge every 2 hours to take a short walk (9 am – 8 pm)</div>
+    <div class="toggle-wrap" style="margin-top:10px;">
+      <span>🧘 Stretch / posture break</span>
+      <label class="toggle"><input type="checkbox" id="stretchNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:3px;">Remind every 90 min to stretch (9 am – 6 pm)</div>
+    <div style="margin-top:10px;">
+      <div class="toggle-wrap">
+        <span>🏃 Exercise reminder</span>
+        <label class="toggle"><input type="checkbox" id="exerciseNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
+      </div>
+      <div class="reminder-row" style="margin-top:6px;"><label>⏰ Time</label><input type="time" id="remExercise" value="07:00" onchange="saveReminders()"></div>
+    </div>
+    <div style="margin-top:10px;">
+      <div class="toggle-wrap">
+        <span>🌛 Sleep reminder</span>
+        <label class="toggle"><input type="checkbox" id="sleepNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
+      </div>
+      <div class="reminder-row" style="margin-top:6px;"><label>🛏️ Bedtime</label><input type="time" id="remSleep" value="22:00" onchange="saveReminders()"></div>
+    </div>
   </div>
   <div class="card">
     <div class="card-title">Profiles</div>
@@ -2365,17 +2391,28 @@ function saveReminders(){
   localStorage.setItem(pk('reminders'),JSON.stringify({
     bf:document.getElementById('remBf').value,
     lu:document.getElementById('remLu').value,
-    dn:document.getElementById('remDn').value
+    dn:document.getElementById('remDn').value,
+    ex:document.getElementById('remExercise').value,
+    sl:document.getElementById('remSleep').value
   }));
-  localStorage.setItem(pk('water_notif'),document.getElementById('waterNotifToggle').checked?'1':'0');
+  ['water_notif','walk_notif','stretch_notif','exercise_notif','sleep_notif'].forEach(k=>{
+    const id={water_notif:'waterNotifToggle',walk_notif:'walkNotifToggle',stretch_notif:'stretchNotifToggle',exercise_notif:'exerciseNotifToggle',sleep_notif:'sleepNotifToggle'}[k];
+    localStorage.setItem(pk(k),document.getElementById(id).checked?'1':'0');
+  });
 }
 function loadReminders(){
   const r=JSON.parse(localStorage.getItem(pk('reminders'))||'{}');
   if(r.bf)document.getElementById('remBf').value=r.bf;
   if(r.lu)document.getElementById('remLu').value=r.lu;
   if(r.dn)document.getElementById('remDn').value=r.dn;
+  if(r.ex)document.getElementById('remExercise').value=r.ex;
+  if(r.sl)document.getElementById('remSleep').value=r.sl;
   document.getElementById('notifToggle').checked=localStorage.getItem(pk('notif'))==='1';
   document.getElementById('waterNotifToggle').checked=localStorage.getItem(pk('water_notif'))==='1';
+  document.getElementById('walkNotifToggle').checked=localStorage.getItem(pk('walk_notif'))==='1';
+  document.getElementById('stretchNotifToggle').checked=localStorage.getItem(pk('stretch_notif'))==='1';
+  document.getElementById('exerciseNotifToggle').checked=localStorage.getItem(pk('exercise_notif'))==='1';
+  document.getElementById('sleepNotifToggle').checked=localStorage.getItem(pk('sleep_notif'))==='1';
 }
 function toggleNotifications(){
   const on=document.getElementById('notifToggle').checked;
@@ -3015,15 +3052,31 @@ function handleRestore(input){
   input.value='';
 }
 
-// ── Feature 2: Meal Reminders ─────────────────────────────────────────────────
+// ── Feature 2: Reminders & Habits ────────────────────────────────────────────
 let _remindersFired={};
-let _waterNotifFiredAt=0;
+
+// Use SW showNotification when available so it works in background on mobile
+function showNotif(title,body){
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const opts={body,icon:'./icon.svg',badge:'./icon.svg',vibrate:[200,100,200]};
+  if('serviceWorker' in navigator&&navigator.serviceWorker.controller){
+    navigator.serviceWorker.ready.then(r=>r.showNotification(title,opts)).catch(()=>new Notification(title,opts));
+  }else{
+    new Notification(title,opts);
+  }
+}
+
 function startReminderChecker(){
   setInterval(checkReminders,60000);
   setInterval(checkWaterReminder,60000);
+  setInterval(checkWalkReminder,60000);
+  setInterval(checkStretchReminder,60000);
   checkReminders();
   setTimeout(checkWaterReminder,5000);
+  setTimeout(checkWalkReminder,8000);
+  setTimeout(checkStretchReminder,11000);
 }
+
 function checkWaterReminder(){
   if(localStorage.getItem(pk('notif'))!=='1')return;
   if(localStorage.getItem(pk('water_notif'))!=='1')return;
@@ -3031,29 +3084,63 @@ function checkWaterReminder(){
   const hour=new Date().getHours();
   if(hour<7||hour>=22)return;
   const nowMs=Date.now();
-  if(nowMs-_waterNotifFiredAt<55*60*1000)return;
+  const lastFired=parseInt(localStorage.getItem(pk('water_notif_at'))||'0',10);
+  if(nowMs-lastFired<55*60*1000)return;
   const lastLog=parseInt(localStorage.getItem(pk('water_last_log'))||'0',10);
   if(nowMs-lastLog>=60*60*1000){
-    _waterNotifFiredAt=nowMs;
-    new Notification('💧 Drink water!',{body:'No water logged in the last hour. Stay hydrated — aim for 8+ glasses today!',icon:'./icon.svg',badge:'./icon.svg'});
+    localStorage.setItem(pk('water_notif_at'),nowMs.toString());
+    showNotif('💧 Drink water!','No water logged in the last hour. Stay hydrated — aim for 8+ glasses today!');
   }
 }
+
+const _walkMsgs=['Take a 5-min walk — it boosts focus and digestion!','Step away from the screen, take a short stroll.','Time to move! A quick walk helps your body and mind.','Don\'t sit too long — a little walk goes a long way!'];
+function checkWalkReminder(){
+  if(localStorage.getItem(pk('notif'))!=='1')return;
+  if(localStorage.getItem(pk('walk_notif'))!=='1')return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const hour=new Date().getHours();
+  if(hour<9||hour>=20)return;
+  const nowMs=Date.now();
+  const lastFired=parseInt(localStorage.getItem(pk('walk_notif_at'))||'0',10);
+  if(nowMs-lastFired<110*60*1000)return;
+  localStorage.setItem(pk('walk_notif_at'),nowMs.toString());
+  showNotif('🚶 Time to walk!',_walkMsgs[Math.floor(Math.random()*_walkMsgs.length)]);
+}
+
+const _stretchMsgs=['Roll your shoulders, stretch your neck — feel better in 2 min!','Straighten your back and take a deep breath. You\'ve got this!','Time for a posture check and a quick stretch!','Look away from the screen, stretch your arms — give your body a break.'];
+function checkStretchReminder(){
+  if(localStorage.getItem(pk('notif'))!=='1')return;
+  if(localStorage.getItem(pk('stretch_notif'))!=='1')return;
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const hour=new Date().getHours();
+  if(hour<9||hour>=18)return;
+  const nowMs=Date.now();
+  const lastFired=parseInt(localStorage.getItem(pk('stretch_notif_at'))||'0',10);
+  if(nowMs-lastFired<85*60*1000)return;
+  localStorage.setItem(pk('stretch_notif_at'),nowMs.toString());
+  showNotif('🧘 Stretch break!',_stretchMsgs[Math.floor(Math.random()*_stretchMsgs.length)]);
+}
+
 function checkReminders(){
   if(localStorage.getItem(pk('notif'))!=='1')return;
   if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
   const now=new Date();
   const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const r=JSON.parse(localStorage.getItem(pk('reminders'))||'{}');
-  const meals=[
+  const tasks=[
     {time:r.bf||'08:00',title:'🌅 Breakfast time!',body:'Log your breakfast to stay on track.'},
     {time:r.lu||'13:00',title:'☀️ Lunch time!',body:'Time to log your lunch.'},
     {time:r.dn||'20:00',title:'🌙 Dinner time!',body:'Log your dinner for the day.'},
   ];
+  if(r.ex&&localStorage.getItem(pk('exercise_notif'))==='1')
+    tasks.push({time:r.ex,title:'🏃 Exercise time!',body:'Time for your workout! Even 20 min makes a big difference.'});
+  if(r.sl&&localStorage.getItem(pk('sleep_notif'))==='1')
+    tasks.push({time:r.sl,title:'🌛 Wind down time',body:'Time to put the phone away and prepare for sleep. Aim for 7–8 hours!'});
   const fireKey=today()+':'+hhmm;
-  meals.forEach(m=>{
+  tasks.forEach(m=>{
     if(m.time===hhmm&&!_remindersFired[fireKey+m.time]){
       _remindersFired[fireKey+m.time]=1;
-      new Notification(m.title,{body:m.body,icon:'./icon.svg',badge:'./icon.svg'});
+      showNotif(m.title,m.body);
     }
   });
 }
