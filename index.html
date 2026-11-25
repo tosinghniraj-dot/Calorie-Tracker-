@@ -852,6 +852,14 @@ input[type=time]{color-scheme:dark;}
       <div class="reminder-row"><label>☀️ Lunch</label><input type="time" id="remLu" value="13:00" onchange="saveReminders()"></div>
       <div class="reminder-row"><label>🌙 Dinner</label><input type="time" id="remDn" value="20:00" onchange="saveReminders()"></div>
     </div>
+    <div style="margin-top:10px;">
+      <div class="toggle-wrap">
+        <span>🌞 Morning motivation</span>
+        <label class="toggle"><input type="checkbox" id="morningNotifToggle" onchange="saveReminders()"><span class="tslider"></span></label>
+      </div>
+      <div class="reminder-row" style="margin-top:6px;"><label>⏰ Wake time</label><input type="time" id="remMorning" value="06:30" onchange="saveReminders()"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px;">A motivational nudge right after you wake up</div>
+    </div>
     <div style="font-size:12px;font-weight:600;color:var(--muted);margin:14px 0 6px;">💪 Health Habits</div>
     <div class="toggle-wrap">
       <span>💧 Water reminder</span>
@@ -2393,10 +2401,11 @@ function saveReminders(){
     lu:document.getElementById('remLu').value,
     dn:document.getElementById('remDn').value,
     ex:document.getElementById('remExercise').value,
-    sl:document.getElementById('remSleep').value
+    sl:document.getElementById('remSleep').value,
+    mo:document.getElementById('remMorning').value
   }));
-  ['water_notif','walk_notif','stretch_notif','exercise_notif','sleep_notif'].forEach(k=>{
-    const id={water_notif:'waterNotifToggle',walk_notif:'walkNotifToggle',stretch_notif:'stretchNotifToggle',exercise_notif:'exerciseNotifToggle',sleep_notif:'sleepNotifToggle'}[k];
+  ['water_notif','walk_notif','stretch_notif','exercise_notif','sleep_notif','morning_notif'].forEach(k=>{
+    const id={water_notif:'waterNotifToggle',walk_notif:'walkNotifToggle',stretch_notif:'stretchNotifToggle',exercise_notif:'exerciseNotifToggle',sleep_notif:'sleepNotifToggle',morning_notif:'morningNotifToggle'}[k];
     localStorage.setItem(pk(k),document.getElementById(id).checked?'1':'0');
   });
 }
@@ -2407,12 +2416,14 @@ function loadReminders(){
   if(r.dn)document.getElementById('remDn').value=r.dn;
   if(r.ex)document.getElementById('remExercise').value=r.ex;
   if(r.sl)document.getElementById('remSleep').value=r.sl;
+  if(r.mo)document.getElementById('remMorning').value=r.mo;
   document.getElementById('notifToggle').checked=localStorage.getItem(pk('notif'))==='1';
   document.getElementById('waterNotifToggle').checked=localStorage.getItem(pk('water_notif'))==='1';
   document.getElementById('walkNotifToggle').checked=localStorage.getItem(pk('walk_notif'))==='1';
   document.getElementById('stretchNotifToggle').checked=localStorage.getItem(pk('stretch_notif'))==='1';
   document.getElementById('exerciseNotifToggle').checked=localStorage.getItem(pk('exercise_notif'))==='1';
   document.getElementById('sleepNotifToggle').checked=localStorage.getItem(pk('sleep_notif'))==='1';
+  document.getElementById('morningNotifToggle').checked=localStorage.getItem(pk('morning_notif'))==='1';
 }
 function toggleNotifications(){
   const on=document.getElementById('notifToggle').checked;
@@ -3093,6 +3104,16 @@ function checkWaterReminder(){
   }
 }
 
+const _morningMsgs=[
+  'Rise and shine! Drink a glass of water first thing — your body will thank you.',
+  'New day, new energy! Set one small intention for today and own it.',
+  'Good morning! Take a deep breath, stretch a little — the day is yours.',
+  'Start strong! Log your meals today and stay on track with your health goals.',
+  'You woke up — that\'s step one! Make today count, one healthy choice at a time.',
+  'Morning glow! Eat a good breakfast, move your body, drink your water.',
+  'Every morning is a fresh start. What one healthy thing will you do today?',
+  'Good morning! A healthy day starts with a healthy morning routine.',
+];
 const _walkMsgs=['Take a 5-min walk — it boosts focus and digestion!','Step away from the screen, take a short stroll.','Time to move! A quick walk helps your body and mind.','Don\'t sit too long — a little walk goes a long way!'];
 function checkWalkReminder(){
   if(localStorage.getItem(pk('notif'))!=='1')return;
@@ -3136,6 +3157,10 @@ function checkReminders(){
     tasks.push({time:r.ex,title:'🏃 Exercise time!',body:'Time for your workout! Even 20 min makes a big difference.'});
   if(r.sl&&localStorage.getItem(pk('sleep_notif'))==='1')
     tasks.push({time:r.sl,title:'🌛 Wind down time',body:'Time to put the phone away and prepare for sleep. Aim for 7–8 hours!'});
+  if(r.mo&&localStorage.getItem(pk('morning_notif'))==='1'){
+    const idx=Math.floor((new Date().getDate()+new Date().getMonth())%_morningMsgs.length);
+    tasks.push({time:r.mo,title:'🌞 Good morning!',body:_morningMsgs[idx]});
+  }
   const fireKey=today()+':'+hhmm;
   tasks.forEach(m=>{
     if(m.time===hhmm&&!_remindersFired[fireKey+m.time]){
